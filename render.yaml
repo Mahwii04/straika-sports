@@ -1,13 +1,13 @@
 services:
   - type: web
-    name: your-app-name
+    name: straika-sports
     runtime: python
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "./build.sh"
     startCommand: "gunicorn run:app"
     env:
       - key: DATABASE_URL
         fromDatabase:
-          name: app-dev.db
+          name: app.db
           property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
+      - key: FLASK_APP
+        value: "run.py"
