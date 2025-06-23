@@ -43,3 +43,4 @@ tzlocal==5.3.1
 urllib3==2.4.0
 Werkzeug==3.1.3
 WTForms==3.2.1
+gunicorn==23.0.0
