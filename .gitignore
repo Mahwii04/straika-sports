@@ -6,3 +6,5 @@ instance/
 .flaskenv
 app-dev.db
 .vercel
+render.yaml
+build.sh
