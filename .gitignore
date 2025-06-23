@@ -5,4 +5,6 @@ venv/
 instance/
 .flaskenv
 app-dev.db
+app.db
 .vercel
+*.db
