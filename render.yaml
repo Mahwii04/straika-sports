@@ -3,7 +3,7 @@ services:
     name: straika-sports
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn run:app"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT run:app"
     env:
       - key: DATABASE_URL
         fromDatabase:

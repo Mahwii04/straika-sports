@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -o errexit
 
-# Install dependencies
+# Install dependencies including gunicorn
+pip install --upgrade pip
 pip install -r requirements.txt
 
-# Initialize database if migrations folder doesn't exist
+# Initialize database if needed
 if [ ! -d "migrations" ]; then
     flask db init
-    # Create initial migration with all current models
-    flask db migrate -m "Initial migration"
 fi
 
-# Always apply migrations
+# Generate and apply migrations
+flask db migrate -m "Render migration" || true
 flask db upgrade
