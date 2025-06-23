@@ -7,4 +7,3 @@ instance/
 app-dev.db
 .vercel
 render.yaml
-build.sh
