@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Straika Sports || Home of immersive sports experience like you have never seen before. The gossips, the action, the drama, we cover it all.{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {% block styles %}{% endblock %}
+    <script>
+        // Immediate theme application to prevent flash
+        (function() {
+            const cookies = document.cookie.split(';').map(c => c.trim());
+            const themeCookie = cookies.find(c => c.startsWith('theme='));
+            const currentTheme = themeCookie ? themeCookie.split('=')[1] : 'light';
+            document.documentElement.classList.toggle('dark-mode', currentTheme === 'dark');
+        })();
+    </script>
+</head>
+<body class="light-mode">
+    {% include 'partials/_navbar.html' %}
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% include 'partials/_flash_messages.html' %}
+        {% endif %}
+    {% endwith %}
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% include 'partials/_footer.html' %}
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+document.getElementById('theme-switcher').addEventListener('click', function() {
+    document.body.classList.toggle('dark-mode');
+});
+</script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="hero-container">
+    <div class="hero-slider">
+        {% for slide in hero_slides %}
+        <div class="hero-slide {% if loop.first %}active{% endif %}">
+            <img src="{{ slide.image_url }}" alt="{{ slide.title }}">
+            <div class="hero-content">
+                <h2 class="hero-title">{{ slide.title }}</h2>
+                <p class="hero-description">{{ slide.description }}</p>
+                <a href="{{ slide.get_post_url() }}" class="hero-read-more">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="slider-dots">
+            {% for slide in hero_slides %}
+            <div class="slider-dot{% if loop.first %} active{% endif %}"></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    
+</div>
+
+<div class="blog-section">
+    <div class="section-hea</div>der">
+        <h2 class="section-title">Latest News</h2>
+        <a href="{{ url_for('blog.latest') }}" class="see-more">See More</a>
+    </div>
+    
+    <div class="post-grid">
+        {% for post in latest_posts %}
+        <div class="post-card">
+            <img src="{{ post.featured_image or url_for('static', filename='images/default-post.jpg') }}" alt="{{ post.title }}" class="post-image">
+            <div class="post-content">
+                <span class="post-category">{{ post.category|capitalize }}</span>
+                <h3 class="post-title">{{ post.title }}</h3>
+                <p class="post-excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <span>{{ post.created_at.strftime('%B %d, %Y') }}</span>
+                    <span>{{ post.reading_time }} min read</span>
+                </div>
+                <a href="{{ url_for('blog.post', slug=post.slug) }}" class="read-more">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- FOOTBALL -->
+<div class="blog-section">
+    <div class="section-header">
+        <h2 class="section-title">Football <span class="hot-tag"><i class="fas fa-fire"></i> Hot</span></h2>
+        <a href="{{ url_for('blog.category', category='football') }}" class="see-more">See More</a>
+    </div>
+    
+    <div class="post-grid">
+        {% for post in football_posts %}
+        <div class="post-card">
+            <img src="{{ post.featured_image or url_for('static', filename='images/defaul</div>t-post.jpg') }}" alt="{{ post.title }}" class="post-image">
+            <div class="post-content">
+                <span class="post-category">Football</span>
+                <h3 class="post-title">{{ post.title }}</h3>
+                <p class="post-excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <span>{{ post.created_at.strftime('%B %d, %Y') }}</span>
+                    <span>{{ post.reading_time }} min read</span>
+                </div>
+                <a href="{{ url_for('blog.post', slug=post.slug) }}" class="read-more">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- TENNIS -->
+<div class="blog-section">
+    <div class="section-header">
+        <h2 class="section-title">Tennis <span class="hot-tag"><i class="fas fa-fire"></i> Hot</span></h2>
+        <a href="{{ url_for('blog.category', category='tennis') }}" class="see-more">See More</a>
+    </div>
+    
+    <div class="post-grid">
+        {% for post in tennis_posts %}
+        <div class="post-card">
+            <img src="{{ post.featured_image or url_for('static', filename='images/defaul</div>t-post.jpg') }}" alt="{{ post.title }}" class="post-image">
+            <div class="post-content">
+                <span class="post-category">Tennis</span>
+                <h3 class="post-title">{{ post.title }}</h3>
+                <p class="post-excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <span>{{ post.created_at.strftime('%B %d, %Y') }}</span>
+                    <span>{{ post.reading_time }} min read</span>
+                </div>
+                <a href="{{ url_for('blog.post', slug=post.slug) }}" class="read-more">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- BASKETBALL -->
+ <div class="blog-section">
+    <div class="section-header">
+        <h2 class="section-title">Basketball <span class="hot-tag"><i class="fas fa-fire"></i> Hot</span></h2>
+        <a href="{{ url_for('blog.category', category='basketball') }}" class="see-more">See More</a>
+    </div>
+    
+    <div class="post-grid">
+        {% for post in basketball_posts %}
+        <div class="post-card">
+            <img src="{{ post.featured_image or url_for('static', filename='images/defaul</div>t-post.jpg') }}" alt="{{ post.title }}" class="post-image">
+            <div class="post-content">
+                <span class="post-category">Basketball</span>
+                <h3 class="post-title">{{ post.title }}</h3>
+                <p class="post-excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <span>{{ post.created_at.strftime('%B %d, %Y') }}</span>
+                    <span>{{ post.reading_time }} min read</span>
+                </div>
+                <a href="{{ url_for('blog.post', slug=post.slug) }}" class="read-more">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<!-- ESPORTS -->
+ <div class="blog-section">
+    <div class="section-header">
+        <h2 class="section-title">Esports <span class="hot-tag"><i class="fas fa-fire"></i> Hot</span></h2>
+        <a href="{{ url_for('blog.category', category='esport') }}" class="see-more">See More</a>
+    </div>
+    
+    <div class="post-grid">
+        {% for post in esports_posts %}
+        <div class="post-card">
+            <img src="{{ post.featured_image or url_for('static', filename='images/defaul</div>t-post.jpg') }}" alt="{{ post.title }}" class="post-image">
+            <div class="post-content">
+                <span class="post-category">Esports</span>
+                <h3 class="post-title">{{ post.title }}</h3>
+                <p class="post-excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <span>{{ post.created_at.strftime('%B %d, %Y') }}</span>
+                    <span>{{ post.reading_time }} min read</span>
+                </div>
+                <a href="{{ url_for('blog.post', slug=post.slug) }}" class="read-more">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<!-- Repeat similar sections for Tennis, Basketball, and Esports -->
+{% endblock %}
+

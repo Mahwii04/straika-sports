@@ -1,0 +1,37 @@
+<nav class="navbar">
+    <a href="{{ url_for('main.index') }}" class="navbar-brand">
+        <img src="{{ url_for('static', filename='images/straika-blue.png') }}" alt="SportsInsight Logo" style="height:60px;">
+    </a>
+    
+    <div class="nav-links">
+        <a href="{{ url_for('main.index') }}" class="nav-link">Home</a>
+        
+        <div class="dropdown">
+            <button class="dropdown-toggle">Categories <i class="fas fa-chevron-down"></i></button>
+            <div class="dropdown-menu">
+                <a href="{{ url_for('blog.category', category='football') }}" class="dropdown-item">Football</a>
+                <a href="{{ url_for('blog.category', category='tennis') }}" class="dropdown-item">Tennis</a>
+                <a href="{{ url_for('blog.category', category='basketball') }}" class="dropdown-item">Basketball</a>
+                <a href="{{ url_for('blog.category', category='esports') }}" class="dropdown-item">Esports</a>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('blog.latest') }}" class="nav-link">Latest</a>
+        <a href="{{ url_for('main.about') }}" class="nav-link">About Us</a>
+        
+        {% if current_user.is_authenticated and current_user.is_admin() %}
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin</a>
+        {% elif current_user.is_authenticated %}
+            <a href="{{ url_for('writer.dashboard') }}" class="nav-link">Dashboard</a>
+        {% endif %}
+        
+        <button class="theme-switcher" id="theme-switcher">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+</nav>
+<script>
+document.getElementById('theme-switcher').addEventListener('click', function() {
+    document.body.classList.toggle('dark-mode');
+});
+</script>

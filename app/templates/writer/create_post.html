@@ -1,0 +1,363 @@
+{% extends "writer/base.html" %}
+
+
+{% block content %}
+<div class="card">
+    <h4>Create New Post</h4>
+    <form method="POST" action="{{ url_for('writer.create_post') }}" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-grid">
+            <div class="form-main">
+                <div class="form-group">
+                    {{ form.title.label }}
+                    {{ form.title(class="form-control", id="post-title") }}
+                    <div class="char-count"><span id="title-count">0</span>/100 characters</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.slug.label }}
+                    {{ form.slug(class="form-control") }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.excerpt.label }}
+                    {{ form.excerpt(class="form-control", rows=3) }}
+                    <div class="char-count"><span id="excerpt-count">0</span>/300 characters</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.content.label }}
+                    {{ form.content(class="form-control", id="post-content") }}
+                </div>
+            </div>
+            
+            <div class="form-sidebar">
+                <div class="form-card">
+                    <h5>Post Details</h5>
+                    
+                    <div class="form-group">
+                        {{ form.category.label }}
+                        {{ form.category(class="form-control") }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.featured_image.label }}
+                        {{ form.featured_image(class="form-control") }}
+                    </div>
+                    
+                    <div class="seo-card">
+                        <h5>SEO Quality</h5>
+                        <div class="seo-score" id="seo-score-display">
+                            <div class="score-letter">-</div>
+                            <div class="score-feedback">Start writing to see analysis</div>
+                        </div>
+                        <div class="seo-factors">
+                            <div class="factor" id="factor-title">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Title (0/100)</span>
+                            </div>
+                            <div class="factor" id="factor-length">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Content: 0 words</span>
+                            </div>
+                            <div class="factor" id="factor-headings">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Headings: 0</span>
+                            </div>
+                            <div class="factor" id="factor-images">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Images: 0</span>
+                            </div>
+                            <div class="factor" id="factor-links">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Links: 0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Publish Post
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/skins/ui/oxide/content.min.css">
+<style>
+.form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+}
+
+textarea.form-control {
+    min-height: 300px;
+    resize: vertical;
+}
+
+.char-count {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+.form-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-card h5 {
+    margin-top: 0;
+    color: var(--primary-color);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.seo-card {
+    margin: 1.5rem 0;
+}
+
+.seo-score {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.score-letter {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 4px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.score-feedback {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.seo-factors {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.factor {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.factor i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.fa-check-circle {
+    color: #28a745;
+}
+
+.fa-times-circle {
+    color: #dc3545;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* TinyMCE Overrides */
+.tox-tinymce {
+    border-radius: 4px !important;
+    border: 1px solid #ddd !important;
+}
+
+@media (max-width: 992px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- TinyMCE Rich Text Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+<script>
+    // Add this before your TinyMCE initialization
+document.querySelector('form').addEventListener('submit', function(e) {
+    // Force TinyMCE to sync its content back to the textarea
+    tinymce.triggerSave();
+    
+    // Optional: Validate content before submission
+    // const content = tinymce.get('post-content').getContent();
+    // if (!content || content.trim() === '') {
+    //     e.preventDefault();
+    //     alert('Please enter some content for your post');
+    //     return false;
+    // }
+    // return true;
+});
+// Initialize TinyMCE
+tinymce.init({
+    selector: '#post-content',
+    plugins: 'advlist autolink lists link image charmap preview anchor table',
+    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+    skin: 'oxide',
+    content_css: 'default',
+    height: 500,
+    images_upload_url: '/upload-image', // Your image upload endpoint
+    automatic_uploads: true,
+    setup: function(editor) {
+        editor.on('keyup', function() {
+            analyzeSEO();
+        });
+    }
+});
+
+// Character counters
+document.getElementById('post-title').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('title-count').textContent = count;
+    analyzeSEO();
+});
+
+document.getElementById('post-excerpt').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('excerpt-count').textContent = count;
+});
+
+// SEO Analysis
+function analyzeSEO() {
+    const title = document.getElementById('post-title').value;
+    const content = tinymce.get('post-content').getContent();
+    
+    // Title analysis
+    const titleLen = title.length;
+    const titleGood = titleLen >= 60 && titleLen <= 100;
+    updateFactor('factor-title', titleGood, `Title (${titleLen}/100)`);
+    
+    // Content analysis
+    const textContent = tinymce.get('post-content').getContent({format: 'text'});
+    const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
+    const lengthGood = wordCount >= 800;
+    updateFactor('factor-length', lengthGood, `Content: ${wordCount} words`);
+    
+    // Heading analysis
+    const headingMatches = content.match(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi) || [];
+    const headingCount = headingMatches.length;
+    const headingsGood = headingCount >= 2;
+    updateFactor('factor-headings', headingsGood, `Headings: ${headingCount}`);
+    
+    // Image analysis
+    const imageMatches = content.match(/<img[^>]*>/gi) || [];
+    const imageCount = imageMatches.length;
+    const imagesGood = imageCount >= 1;
+    updateFactor('factor-images', imagesGood, `Images: ${imageCount}`);
+    
+    // Link analysis
+    const linkMatches = content.match(/<a[^>]*href=["'][^"']*["'][^>]*>/gi) || [];
+    const linkCount = linkMatches.length;
+    const linksGood = linkCount >= 1;
+    updateFactor('factor-links', linksGood, `Links: ${linkCount}`);
+    
+    // Calculate overall score
+    let score = 0;
+    if (titleGood) score += 20;
+    if (lengthGood) score += 20;
+    if (headingsGood) score += 20;
+    if (imagesGood) score += 20;
+    if (linksGood) score += 20;
+    
+    // Update score display
+    updateScore(score);
+}
+
+function updateFactor(factorId, isGood, text) {
+    const factor = document.getElementById(factorId);
+    const icon = factor.querySelector('i');
+    icon.className = isGood ? 'fas fa-check-circle' : 'fas fa-times-circle';
+    factor.querySelector('span').textContent = text;
+}
+
+function updateScore(score) {
+    const scoreDisplay = document.getElementById('seo-score-display');
+    const letter = scoreDisplay.querySelector('.score-letter');
+    const feedback = scoreDisplay.querySelector('.score-feedback');
+    
+    let grade, color, message;
+    
+    if (score >= 90) {
+        grade = 'A'; color = '#28a745'; message = 'Excellent! Perfect SEO optimization';
+    } else if (score >= 75) {
+        grade = 'B'; color = '#5cb85c'; message = 'Good. Meets most SEO requirements';
+    } else if (score >= 50) {
+        grade = 'C'; color = '#ffc107'; message = 'Average. Could use improvement';
+    } else if (score >= 25) {
+        grade = 'D'; color = '#fd7e14'; message = 'Below average. Needs work';
+    } else {
+        grade = 'F'; color = '#dc3545'; message = 'Poor. Major SEO issues';
+    }
+    
+    letter.textContent = grade;
+    letter.style.borderColor = color;
+    letter.style.color = color;
+    feedback.textContent = message;
+}
+
+// Initial analysis
+document.addEventListener('DOMContentLoaded', function() {
+    analyzeSEO();
+});
+</script>
+{% endblock %}

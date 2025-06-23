@@ -1,0 +1,93 @@
+{% extends "writer/base.html" %}
+
+{% block content %}
+<div class="card">
+    <h4>My Statistics</h4>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ current_user.posts.count() }}</div>
+            <div class="stat-label">Total Posts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_views }}</div>
+            <div class="stat-label">Total Views</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ avg_reading_time }} min</div>
+            <div class="stat-label">Avg. Read Time</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h4>Recent Posts</h4>
+    <table class="post-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Views</th>
+                <th>Score</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in recent_posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.views }}</td>
+                <td class="score-{{ post.seo_score|lower }}">{{ post.seo_score }}</td>
+                <td>
+                    <a href="{{ url_for('blog.post', slug=post.slug) }}" class="action-btn view">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{{ url_for('writer.edit_post', post_id=post.id) }}" class="action-btn edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.post-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.post-table th, .post-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.post-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.action-btn {
+    padding: 5px;
+    margin-right: 5px;
+    border-radius: 4px;
+}
+
+.action-btn.view {
+    color: var(--primary-color);
+}
+
+.action-btn.edit {
+    color: #ffc107;
+}
+
+.score-a { color: #28a745; font-weight: bold; }
+.score-b { color: #5cb85c; font-weight: bold; }
+.score-c { color: #ffc107; font-weight: bold; }
+.score-d { color: #fd7e14; font-weight: bold; }
+.score-f { color: #dc3545; font-weight: bold; }
+</style>
+{% endblock %}

@@ -1,0 +1,52 @@
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-about">
+            <a href="{{ url_for('main.index') }}" class="navbar-brand">
+                <img src="{{ url_for('static', filename='images/straika-blue.png') }}" alt="SportsInsight Logo" style="height:40px;">
+            </a>
+            <p class="footer-description">
+                Your premier destination for sports news, analysis, and predictions.
+                We bring you the latest updates from the world of sports.
+            </p>
+            <div class="footer-social">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-x"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+        
+        <div class="footer-links">
+            <h3 class="footer-title">Quick Links</h3>
+            <ul class="footer-links">
+                <li class="footer-link"><a href="{{ url_for('main.index') }}">Home</a></li>
+                <li class="footer-link"><a href="{{ url_for('blog.latest') }}">Latest News</a></li>
+                <li class="footer-link"><a href="{{ url_for('main.about') }}">About Us</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-categories">
+            <h3 class="footer-title">Categories</h3>
+            <ul class="footer-links">
+                <li class="footer-link"><a href="{{ url_for('blog.category', category='football') }}">Football</a></li>
+                <li class="footer-link"><a href="{{ url_for('blog.category', category='tennis') }}">Tennis</a></li>
+                <li class="footer-link"><a href="{{ url_for('blog.category', category='basketball') }}">Basketball</a></li>
+                <li class="footer-link"><a href="{{ url_for('blog.category', category='esports') }}">Esports</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-newsletter">
+            <h3 class="footer-title">Newsletter</h3>
+            <p>Subscribe to our newsletter for the latest updates.</p>
+            <form class="newsletter-form" action="{{ url_for('main.add_subscriber') }}" method="POST">
+            <input type="email" name="email" class="newsletter-input" placeholder="Your email address" required>
+            <button type="submit" class="newsletter-button">Subscribe</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        <p>&copy; {{ now.year }} SportsInsight. All rights reserved.</p>
+    </div>
+</footer>
+

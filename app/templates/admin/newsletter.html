@@ -1,0 +1,271 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin - Newsletter{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Newsletter Management</h1>
+    </div>
+    
+    <div class="admin-tabs">
+        <button class="tab-button active" data-tab="subscribers">Subscribers</button>
+        <button class="tab-button" data-tab="compose">Compose</button>
+    </div>
+    
+    <div class="tab-content active" id="subscribers-tab">
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Subscribed On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subscriber in subscribers %}
+                    <tr>
+                        <td>{{ subscriber.email }}</td>
+                        <td>{{ subscriber.subscribed_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin.delete_subscriber', subscriber_id=subscriber.id) }}" style="display:inline;">
+                                {{ form.hidden_tag() }}
+                                <button type="submit" class="action-link delete" title="Delete" onclick="return confirm('Are you sure you want to remove this subscriber?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination">
+            {% if prev_page %}
+            <a href="{{ url_for('admin.newsletter', page=prev_page) }}" class="page-link">&laquo; Previous</a>
+            {% endif %}
+            
+            {% for page_num in range(1, total_pages + 1) %}
+            <a href="{{ url_for('admin.newsletter', page=page_num) }}" 
+               class="page-link {% if page_num == current_page %}active{% endif %}">
+                {{ page_num }}
+            </a>
+            {% endfor %}
+            
+            {% if next_page %}
+            <a href="{{ url_for('admin.newsletter', page=next_page) }}" class="page-link">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="tab-content" id="compose-tab">
+        <form method="POST" action="{{ url_for('admin.newsletter') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.subject.label }}
+                {{ form.subject(class="form-control") }}
+                {% for error in form.subject.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.message.label }}
+                {{ form.message(class="form-control", rows=10) }}
+                {% for error in form.message.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="admin-button">
+                <i class="fas fa-paper-plane"></i> Send Newsletter
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            // Update active tab button
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update active tab content
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+.admin-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.admin-header {
+    margin-bottom: 2rem;
+}
+
+.admin-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 2rem;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-button.active {
+    border-bottom-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.admin-table-container {
+    overflow-x: auto;
+    margin-bottom: 2rem;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th, 
+.admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.admin-table th {
+    background-color: rgba(0,0,0,0.05);
+    font-weight: bold;
+}
+
+.action-link {
+    display: inline-block;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.action-link.delete {
+    color: #dc3545;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.page-link {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--primary-color);
+    transition: all 0.3s;
+}
+
+.page-link:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.page-link.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Georgia', serif;
+}
+
+.form-error {
+    color: #dc3545;
+    font-size: 0.9rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+textarea.form-control {
+    min-height: 300px;
+    resize: vertical;
+}
+
+.admin-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+}
+
+.admin-button:hover {
+    background-color: var(--secondary-color);
+}
+
+.admin-button i {
+    margin-right: 0.5rem;
+}
+</style>
+{% endblock %}
+

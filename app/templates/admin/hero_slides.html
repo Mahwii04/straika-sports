@@ -1,0 +1,383 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Hero Slides Management</h1>
+        <p>Select posts to feature in the homepage slider</p>
+    </div>
+
+    <div class="admin-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-images"></i> Current Slides</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid-container">
+                    {% for slide in hero_slides %}
+                    <div class="slide-card {% if not slide.is_active %}inactive{% endif %}">
+                        <div class="slide-image">
+                            {% if slide.post.featured_image %}
+                            <img src="{{ slide.post.featured_image }}" alt="{{ slide.post.title }}">
+                            {% else %}
+                            <div class="no-image">No Image</div>
+                            {% endif %}
+                        </div>
+                        <div class="slide-details">
+                            <h4>{{ slide.post.title }}</h4>
+                            <p class="category">{{ slide.post.category|capitalize }}</p>
+                            <div class="slide-actions">
+                                <form method="POST" action="{{ url_for('admin.toggle_hero_slide', slide_id=slide.id) }}">
+                                    <button type="submit" class="status-btn {% if slide.is_active %}active{% endif %}">
+                                        {% if slide.is_active %}
+                                        <i class="fas fa-toggle-on"></i> Active
+                                        {% else %}
+                                        <i class="fas fa-toggle-off"></i> Inactive
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.delete_hero_slide', slide_id=slide.id) }}">
+                                    <button type="submit" class="delete-btn" onclick="return confirm('Remove this slide?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-plus-circle"></i> Add New Slide</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.add_hero_slide') }}" class="form-grid">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-main">
+                        <div class="form-group">
+                            <label for="post_id">Select Post</label>
+                            <select id="post_id" name="post_id" class="form-control" required>
+                                <option value="">-- Choose a post --</option>
+                                {% for post in available_posts %}
+                                <option value="{{ post.id }}" data-image="{{ post.featured_image or '' }}">
+                                    {{ post.title }} ({{ post.category|capitalize }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Slide Preview</label>
+                            <div class="slide-preview">
+                                <div id="image-preview">
+                                    <img id="selected-image" src="" alt="Selected post image">
+                                    <div id="no-image" class="no-image-preview">
+                                        <i class="fas fa-image"></i>
+                                        <p>No featured image set for this post</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-sidebar">
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="is_active" name="is_active" checked>
+                                <label for="is_active">Activate this slide</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="action-button">
+                            <i class="fas fa-plus"></i> Add to Hero Slides
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Georgia', serif;
+}
+
+.admin-header {
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+}
+
+.admin-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.admin-header p {
+    color: #666;
+}
+
+.admin-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1.2rem 1.5rem;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.slide-card {
+    background-color: var(--card-bg);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+}
+
+.slide-card.inactive {
+    opacity: 0.7;
+}
+
+.slide-card:hover {
+    transform: translateY(-5px);
+}
+
+.slide-image {
+    height: 160px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+}
+
+.slide-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.slide-details {
+    padding: 1rem;
+}
+
+.slide-details h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.slide-details .category {
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.slide-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.status-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.status-btn.active {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-btn:not(.active) {
+    background-color: #6c757d;
+    color: white;
+}
+
+.delete-btn {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.form-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.slide-preview {
+    border: 1px dashed #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    background-color: rgba(255,255,255,0.1);
+}
+
+#image-preview {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#selected-image {
+    max-width: 100%;
+    max-height: 100%;
+    display: none;
+}
+
+.no-image-preview {
+    text-align: center;
+    color: #666;
+}
+
+.no-image-preview i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Image preview functionality
+document.getElementById('post_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const imageUrl = selectedOption.getAttribute('data-image');
+    const previewImg = document.getElementById('selected-image');
+    const noImage = document.getElementById('no-image');
+    
+    if (imageUrl) {
+        previewImg.src = imageUrl;
+        previewImg.style.display = 'block';
+        noImage.style.display = 'none';
+    } else {
+        previewImg.style.display = 'none';
+        noImage.style.display = 'flex';
+    }
+});
+</script>
+{% endblock %}
