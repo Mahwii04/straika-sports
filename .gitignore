@@ -1,5 +1,4 @@
 __pycache__*
-migrations/
 venv/
 .env
 instance/
@@ -8,3 +7,4 @@ app-dev.db
 app.db
 .vercel
 *.db
+
