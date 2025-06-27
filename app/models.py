@@ -8,7 +8,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(512))  # Increased length for better security
     role = db.Column(db.String(20), default='writer')
     about = db.Column(db.Text)
     phone = db.Column(db.String(20))
