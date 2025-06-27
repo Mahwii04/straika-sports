@@ -90,10 +90,12 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(trafficCtx, {
         type: 'line',
         data: {
-            labels: {{ analytics.daily_views|map(attribute='date')|list|tojson }},
+            // labels: {{ analytics.daily_views|map(attribute='date')|list|tojson|safe }},
+            labels: {{ analytics.daily_views|map(attribute='date')|list|tojson|safe }},
             datasets: [{
                 label: 'Daily Views',
-                data: {{ analytics.daily_views|map(attribute='views')|list|tojson }},
+                // data: {{ analytics.daily_views|map(attribute='views')|list|tojson|safe }},
+                data: {{ analytics.daily_views|map(attribute='views')|list|tojson|safe }},
                 backgroundColor: 'rgba(26, 115, 232, 0.2)',
                 borderColor: 'rgba(26, 115, 232, 1)',
                 borderWidth: 2,
@@ -114,17 +116,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sources Chart
     const sourcesCtx = document.getElementById('sourcesChart').getContext('2d');
     new Chart(sourcesCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ analytics.traffic_sources|map(attribute='source')|list|tojson }},
+            // labels: {{ analytics.traffic_sources|map(attribute='source')|list|tojson|safe }},
+            labels: {{ analytics.traffic_sources|map(attribute='source')|list|tojson|safe }},
             datasets: [{
-                data: {{ analytics.traffic_sources|map(attribute='count')|list|tojson }},
+                // data: {{ analytics.traffic_sources|map(attribute='count')|list|tojson|safe }},
+                data: {{ analytics.traffic_sources|map(attribute='count')|list|tojson|safe }},
                 backgroundColor: [
                     'rgba(26, 115, 232, 0.7)',
                     'rgba(66, 133, 244, 0.7)',
                     'rgba(92, 184, 92, 0.7)',
                     'rgba(240, 173, 78, 0.7)',
                     'rgba(217, 83, 79, 0.7)'
+                ]
+            }]
                 ]
             }]
         },
@@ -137,14 +141,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Users Chart
-    const usersCtx = document.getElementById('usersChart').getContext('2d');
-    new Chart(usersCtx, {
-        type: 'bar',
-        data: {
-            labels: {{ analytics.user_growth|map(attribute='date')|list|tojson }},
+            // labels: {{ analytics.user_growth|map(attribute='date')|list|tojson|safe }},
+            labels: {{ analytics.user_growth|map(attribute='date')|list|tojson|safe }},
             datasets: [{
                 label: 'New Users',
-                data: {{ analytics.user_growth|map(attribute='new_users')|list|tojson }},
+                // data: {{ analytics.user_growth|map(attribute='new_users')|list|tojson|safe }},
+                data: {{ analytics.user_growth|map(attribute='new_users')|list|tojson|safe }},
+                backgroundColor: 'rgba(92, 184, 92, 0.7)'
+            }]
+                label: 'New Users',
+                data: {{ analytics.user_growth|map(attribute='new_users')|list|tojson|safe }},
                 backgroundColor: 'rgba(92, 184, 92, 0.7)'
             }]
         },
@@ -158,16 +164,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-
-    // Reading Time Chart
-    const readingCtx = document.getElementById('readingChart').getContext('2d');
-    new Chart(readingCtx, {
-        type: 'bar',
-        data: {
-            labels: {{ analytics.reading_times|map(attribute='minutes')|list|map('int')|list|tojson }},
+            // labels: {{ analytics.reading_times|map(attribute='minutes')|list|map('int')|list|tojson|safe }},
+            labels: {{ analytics.reading_times|map(attribute='minutes')|list|map('int')|list|tojson|safe }},
             datasets: [{
                 label: 'Number of Posts',
-                data: {{ analytics.reading_times|map(attribute='count')|list|tojson }},
+                // data: {{ analytics.reading_times|map(attribute='count')|list|tojson|safe }},
+                data: {{ analytics.reading_times|map(attribute='count')|list|tojson|safe }},
+                backgroundColor: 'rgba(240, 173, 78, 0.7)'
+            }]
+            labels: {{ analytics.reading_times|map(attribute='minutes')|list|map('int')|list|tojson|safe }},
+            datasets: [{
+                label: 'Number of Posts',
+                data: {{ analytics.reading_times|map(attribute='count')|list|tojson|safe }},
                 backgroundColor: 'rgba(240, 173, 78, 0.7)'
             }]
         },
