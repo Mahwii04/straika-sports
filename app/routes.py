@@ -30,8 +30,8 @@ def run_migrations():
 @main.route('/create-admin')
 def create_admin():
     # Change these values as needed
-    username = "Mahwii"
-    email = "the.opeyemimichael@gmail.com"
+    username = "admin01"
+    email = "admin@straikasports.buzz"
     password = "Mvdmboss44."
     existing = User.query.filter_by(username=username).first()
     if existing:
@@ -40,7 +40,7 @@ def create_admin():
         username=username,
         email=email,
         password_hash=generate_password_hash(password),
-        is_admin=True  # or whatever flag your User model uses
+        role='admin'  # or whatever flag your User model uses
     )
     db.session.add(admin)
     db.session.commit()
