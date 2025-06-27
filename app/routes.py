@@ -686,7 +686,7 @@ def dashboard():
     recent_posts = current_user.posts.order_by(Post.created_at.desc()).limit(5).all()
     
     # Prepare chart data - last 30 days
-    last_30_days = datetime.utcnow() - timedelta(days=30)
+    last_30_days = datetime.now(timezone.utc) - timedelta(days=30)
     
     # Daily views data - ensure we're getting proper date objects
     daily_results = db.session.query(
@@ -700,8 +700,8 @@ def dashboard():
     
     # Convert to serializable format
     post_views_data = {
-        'labels': [date.strftime('%b %d') for date, views in daily_results],
-        'values': [int(views) if views else 0 for date, views in daily_results]
+        'labels': [str(date) for date, _ in daily_results],
+        'values': [int(views) if views else 0 for _, views in daily_results]
     }
     
     # Prepare performance data
