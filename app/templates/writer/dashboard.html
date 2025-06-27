@@ -2,81 +2,56 @@
 
 {% block content %}
 <div class="dashboard-container">
-    <div class="stats-section">
-        <div class="card">
-            <h4>My Performance Overview</h4>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">{{ current_user.posts.count() }}</div>
-                    <div class="stat-label">Total Posts</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{{ total_views }}</div>
-                    <div class="stat-label">Total Views</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{{ "%.1f"|format(avg_reading_time) }} min</div>
-                    <div class="stat-label">Avg. Read Time</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{{ engagement_score }}</div>
-                    <div class="stat-label">Engagement Score</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Your existing stats cards here -->
 
     <div class="charts-section">
         <div class="card">
             <h4>Views Over Time</h4>
-            <canvas id="viewsChart"></canvas>
+            <canvas id="viewsChart" 
+                    data-dates="{{ view_dates }}"
+                    data-counts="{{ view_counts }}"></canvas>
         </div>
         
         <div class="card">
             <h4>Post Performance</h4>
-            <canvas id="performanceChart"></canvas>
+            <canvas id="performanceChart"
+                    data-titles="{{ perf_titles }}"
+                    data-views="{{ perf_views }}"
+                    data-times="{{ perf_times }}"></canvas>
         </div>
     </div>
 
-    <div class="recent-posts">
-        <div class="card">
-            <h4>Recent Posts</h4>
-            <div class="table-responsive">
-                <table class="post-table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Views</th>
-                            <th>Read Time</th>
-                            <th>Score</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for post in recent_posts %}
-                        <tr>
-                            <td>{{ post.title }}</td>
-                            <td>{{ post.views }}</td>
-                            <td>{{ post.reading_time }} min</td>
-                            <td class="score-{{ post.seo_score|lower }}">{{ post.seo_score }}</td>
-                            <td>
-                                <a href="{{ url_for('blog.post', slug=post.slug) }}" class="action-btn view" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ url_for('writer.edit_post', post_id=post.id) }}" class="action-btn edit" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{{ url_for('writer.analytics', post_id=post.id) }}" class="action-btn stats" title="Analytics">
-                                    <i class="fas fa-chart-bar"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <!-- Your existing recent posts table here -->
+     <div class="card">
+    <h4>Recent Posts</h4>
+    <table class="post-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Views</th>
+                <th>Score</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in recent_posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.views }}</td>
+                <td class="score-{{ post.seo_score|lower }}">{{ post.seo_score }}</td>
+                <td>
+                    <a href="{{ url_for('blog.post', slug=post.slug) }}" class="action-btn view">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{{ url_for('writer.edit_post', post_id=post.id) }}" class="action-btn edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 </div>
 {% endblock %}
 
@@ -85,14 +60,17 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Views Over Time Chart
-    const viewsCtx = document.getElementById('viewsChart').getContext('2d');
-    new Chart(viewsCtx, {
+    const viewsChart = document.getElementById('viewsChart');
+    const dates = viewsChart.dataset.dates.split(',');
+    const counts = viewsChart.dataset.counts.split(',').map(Number);
+    
+    new Chart(viewsChart.getContext('2d'), {
         type: 'line',
         data: {
-            labels: {{ post_views_data.labels|tojson }},
+            labels: dates,
             datasets: [{
                 label: 'Post Views',
-                data: {{ post_views_data.values|tojson }},
+                data: counts,
                 backgroundColor: 'rgba(26, 115, 232, 0.1)',
                 borderColor: 'rgba(26, 115, 232, 1)',
                 borderWidth: 2,
@@ -102,35 +80,30 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { 
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0 // Ensure whole numbers for view counts
-                    }
-                }
-            }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
 
     // Performance Comparison Chart
-    const perfCtx = document.getElementById('performanceChart').getContext('2d');
-    new Chart(perfCtx, {
+    const perfChart = document.getElementById('performanceChart');
+    const titles = perfChart.dataset.titles.split('|');
+    const views = perfChart.dataset.views.split(',').map(Number);
+    const times = perfChart.dataset.times.split(',').map(Number);
+    
+    new Chart(perfChart.getContext('2d'), {
         type: 'bar',
         data: {
-            labels: {{ performance_data.titles|tojson }},
+            labels: titles,
             datasets: [{
                 label: 'Views',
-                data: {{ performance_data.views|tojson }},
+                data: views,
                 backgroundColor: 'rgba(66, 133, 244, 0.7)',
                 borderColor: 'rgba(26, 115, 232, 1)',
                 borderWidth: 1
             }, {
                 label: 'Avg. Read Time',
-                data: {{ performance_data.read_times|tojson }},
+                data: times,
                 backgroundColor: 'rgba(92, 184, 92, 0.7)',
                 borderColor: 'rgba(46, 134, 46, 1)',
                 borderWidth: 1,
@@ -144,26 +117,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) label += ': ';
-                            if (context.datasetIndex === 0) {
-                                label += context.raw + ' views';
-                            } else {
-                                label += context.raw.toFixed(1) + ' min';
-                            }
-                            return label;
+                            return `${context.dataset.label}: ${context.raw}${context.datasetIndex === 0 ? ' views' : ' min'}`;
                         }
                     }
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Views' },
-                    ticks: {
-                        precision: 0
-                    }
-                },
+                y: { beginAtZero: true, title: { display: true, text: 'Views' } },
                 y1: {
                     position: 'right',
                     beginAtZero: true,

@@ -125,7 +125,7 @@ def logout():
     return redirect(url_for('main.index'))
 
 @auth.route('/onboard', methods=['GET', 'POST'])
-def register():
+def onboard():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     form = RegistrationForm()
@@ -710,6 +710,8 @@ def dashboard():
         'views': [post.views for post in recent_posts],
         'read_times': [float(post.reading_time) for post in recent_posts]
     }
+    print(post_views_data)
+    print(performance_data)
     
     return render_template(
         'writer/dashboard.html',
