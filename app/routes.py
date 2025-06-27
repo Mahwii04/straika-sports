@@ -19,6 +19,14 @@ from datetime import datetime, timedelta
 main = Blueprint('main', __name__)
 
 
+@main.route('/run-migrations')
+def run_migrations():
+    """Endpoint to run database migrations."""
+    from flask_migrate import upgrade
+    upgrade()
+    return "Migrations applied!"
+
+
 @main.route('/')
 def index():
     hero_slides = HeroSlide.query.filter_by(is_active=True).order_by(HeroSlide.created_at.desc()).limit(5).all()
