@@ -680,7 +680,7 @@ def dashboard():
     avg_reading_time = db.session.query(func.avg(Post.reading_time)).filter(Post.user_id == current_user.id).scalar() or 0
     
     # Calculate engagement score (example formula)
-    engagement_score = min(100, (total_views / max(1, total_posts)) + (avg_reading_time * 2)
+    engagement_score = min(100, (total_views / max(1, total_posts)) + (avg_reading_time * 2))
     
     # Get recent posts
     recent_posts = current_user.posts.order_by(Post.created_at.desc()).limit(5).all()
