@@ -20,11 +20,35 @@ main = Blueprint('main', __name__)
 
 
 @main.route('/run-migrations')
+@login_required
 def run_migrations():
     """Endpoint to run database migrations."""
+    if not current_user.is_admin():
+        flash('You do not have permission to access this page', 'danger')
+        return redirect(url_for('main.index'))
+    
     from flask_migrate import upgrade
     upgrade()
     return "Migrations applied!"
+
+@main.route('/create-admin')
+def create_admin():
+    # Change these values as needed
+    username = "Mahwii"
+    email = "the.opeyemimichael@gmail.com"
+    password = "Mvdmboss44."
+    existing = User.query.filter_by(username=username).first()
+    if existing:
+        return "Admin already exists."
+    admin = User(
+        username=username,
+        email=email,
+        password_hash=generate_password_hash(password),
+        is_admin=True  # or whatever flag your User model uses
+    )
+    db.session.add(admin)
+    db.session.commit()
+    return "Admin created!"
 
 
 @main.route('/')
