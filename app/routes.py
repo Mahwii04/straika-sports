@@ -20,31 +20,18 @@ main = Blueprint('main', __name__)
 
 
 @main.route('/run-migrations')
+@login_required
 def run_migrations():
     """Endpoint to run database migrations."""
+    if not current_user.is_admin():
+        flash('You do not have permission to run migrations.', 'danger')
+        return redirect(url_for('main.index'))
     
+
     from flask_migrate import upgrade
     upgrade()
     return "Migrations applied!"
 
-@main.route('/create-admin')
-def create_admin():
-    # Change these values as needed
-    username = "admin01"
-    email = "admin@straikasports.buzz"
-    password = "Mvdmboss44."
-    existing = User.query.filter_by(username=username).first()
-    if existing:
-        return "Admin already exists."
-    admin = User(
-        username=username,
-        email=email,
-        password_hash=generate_password_hash(password),
-        role='admin'  # or whatever flag your User model uses
-    )
-    db.session.add(admin)
-    db.session.commit()
-    return "Admin created!"
 
 
 @main.route('/')
@@ -687,19 +674,48 @@ writer = Blueprint('writer', __name__, url_prefix='/writer')
 @writer.route('/')
 @login_required
 def dashboard():
-    # Calculate writer statistics
+    # Get basic stats
     total_posts = current_user.posts.count()
-    total_views = db.session.query(db.func.sum(Post.views)).filter(Post.user_id == current_user.id).scalar() or 0
-    avg_reading_time = db.session.query(db.func.avg(Post.reading_time)).filter(Post.user_id == current_user.id).scalar() or 0
+    total_views = db.session.query(func.sum(Post.views)).filter(Post.user_id == current_user.id).scalar() or 0
+    avg_reading_time = db.session.query(func.avg(Post.reading_time)).filter(Post.user_id == current_user.id).scalar() or 0
     
-    # Get recent posts (last 5)
+    # Calculate engagement score (example formula)
+    engagement_score = min(100, (total_views / max(1, total_posts)) + (avg_reading_time * 2)
+    
+    # Get recent posts
     recent_posts = current_user.posts.order_by(Post.created_at.desc()).limit(5).all()
     
-    return render_template('writer/dashboard.html',
-                         total_posts=total_posts,
-                         total_views=total_views,
-                         avg_reading_time=round(avg_reading_time, 1),
-                         recent_posts=recent_posts)
+    # Prepare chart data
+    last_30_days = datetime.utcnow() - timedelta(days=30)
+    daily_views = db.session.query(
+        func.date(Post.created_at).label('date'),
+        func.sum(Post.views).label('views')
+    ).filter(Post.user_id == current_user.id, Post.created_at >= last_30_days)\
+     .group_by(func.date(Post.created_at))\
+     .order_by(func.date(Post.created_at)).all()
+    
+    post_views_data = {
+        'labels': [date.strftime('%b %d') for date, _ in daily_views],
+        'values': [views for _, views in daily_views]
+    }
+    
+    performance_data = {
+        'titles': [post.title[:20] + '...' for post in recent_posts],
+        'views': [post.views for post in recent_posts],
+        'read_times': [post.reading_time for post in recent_posts]
+    }
+    
+    return render_template(
+        'writer/dashboard.html',
+        total_views=total_views,
+        avg_reading_time=avg_reading_time,
+        engagement_score=int(engagement_score),
+        recent_posts=recent_posts,
+        post_views_data=post_views_data,
+        performance_data=performance_data
+    )
+
+
 
 @writer.route('/posts')
 @login_required
