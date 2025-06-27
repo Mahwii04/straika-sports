@@ -106,7 +106,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: { display: false }
             },
             scales: {
-                y: { beginAtZero: true }
+                y: { 
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0 // Ensure whole numbers for view counts
+                    }
+                }
             }
         }
     });
@@ -144,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (context.datasetIndex === 0) {
                                 label += context.raw + ' views';
                             } else {
-                                label += context.raw + ' min';
+                                label += context.raw.toFixed(1) + ' min';
                             }
                             return label;
                         }
@@ -154,7 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Views' }
+                    title: { display: true, text: 'Views' },
+                    ticks: {
+                        precision: 0
+                    }
                 },
                 y1: {
                     position: 'right',

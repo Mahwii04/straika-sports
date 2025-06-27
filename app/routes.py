@@ -682,39 +682,44 @@ def dashboard():
     # Calculate engagement score (example formula)
     engagement_score = min(100, (total_views / max(1, total_posts)) + (avg_reading_time * 2))
     
-    # Get recent posts
+    # Get recent posts (last 5)
     recent_posts = current_user.posts.order_by(Post.created_at.desc()).limit(5).all()
     
-    # Prepare chart data
+    # Prepare chart data - last 30 days
     last_30_days = datetime.utcnow() - timedelta(days=30)
-    daily_views = db.session.query(
+    
+    # Daily views data - ensure we're getting proper date objects
+    daily_results = db.session.query(
         func.date(Post.created_at).label('date'),
         func.sum(Post.views).label('views')
-    ).filter(Post.user_id == current_user.id, Post.created_at >= last_30_days)\
-     .group_by(func.date(Post.created_at))\
+    ).filter(
+        Post.user_id == current_user.id,
+        Post.created_at >= last_30_days
+    ).group_by(func.date(Post.created_at))\
      .order_by(func.date(Post.created_at)).all()
     
+    # Convert to serializable format
     post_views_data = {
-        'labels': [date.strftime('%b %d') for date, _ in daily_views],
-        'values': [views for _, views in daily_views]
+        'labels': [date.strftime('%b %d') for date, views in daily_results],
+        'values': [int(views) if views else 0 for date, views in daily_results]
     }
     
+    # Prepare performance data
     performance_data = {
-        'titles': [post.title[:20] + '...' for post in recent_posts],
+        'titles': [post.title[:20] + ('...' if len(post.title) > 20 else '') for post in recent_posts],
         'views': [post.views for post in recent_posts],
-        'read_times': [post.reading_time for post in recent_posts]
+        'read_times': [float(post.reading_time) for post in recent_posts]
     }
     
     return render_template(
         'writer/dashboard.html',
         total_views=total_views,
-        avg_reading_time=avg_reading_time,
+        avg_reading_time=float(avg_reading_time),
         engagement_score=int(engagement_score),
         recent_posts=recent_posts,
         post_views_data=post_views_data,
         performance_data=performance_data
     )
-
 
 
 @writer.route('/posts')
