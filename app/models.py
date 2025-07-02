@@ -58,9 +58,9 @@ class HeroSlide(db.Model):
     )
     post = db.relationship('Post', backref='hero_slide')  # Optional: for easy access
     title = db.Column(db.String(100))
-    description = db.Column(db.String(200))
-    image_url = db.Column(db.String(200))
-    link = db.Column(db.String(200))
+    description = db.Column(db.String(300))
+    image_url = db.Column(db.String(512))
+    link = db.Column(db.String(512))
     category = db.Column(db.String(50))  # Category for the hero slide
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
