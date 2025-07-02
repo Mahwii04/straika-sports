@@ -127,3 +127,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Process YouTube embeds
+    document.querySelectorAll('.embed-responsive iframe[src*="youtube.com"], .embed-responsive iframe[src*="youtu.be"]').forEach(iframe => {
+        // Ensure iframe has proper attributes
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+    });
+
+    // Process Twitter embeds
+    document.querySelectorAll('.twitter-embed').forEach(embed => {
+        const url = embed.textContent.trim();
+        if (url.includes('twitter.com')) {
+            // Replace with Twitter's embed script
+            const script = document.createElement('script');
+            script.src = 'https://platform.twitter.com/widgets.js';
+            script.charset = 'utf-8';
+            script.async = true;
+            
+            const blockquote = document.createElement('blockquote');
+            blockquote.className = 'twitter-tweet';
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            blockquote.appendChild(anchor);
+            
+            embed.innerHTML = '';
+            embed.appendChild(blockquote);
+            document.body.appendChild(script);
+        }
+    });
+
+    // Process Vimeo embeds
+    document.querySelectorAll('.embed-responsive iframe[src*="vimeo.com"]').forEach(iframe => {
+        iframe.setAttribute('allowfullscreen', '');
+    });
+});

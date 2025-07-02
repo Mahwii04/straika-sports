@@ -216,6 +216,39 @@ textarea.form-control {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+/* Responsive embeds */
+.embed-responsive {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.embed-responsive::before {
+    display: block;
+    content: "";
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+}
+
+.embed-responsive-item {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.twitter-embed {
+    margin: 1rem 0;
+    text-align: center;
+    font-style: italic;
+    color: #666;
+}
+
 /* TinyMCE Overrides */
 .tox-tinymce {
     border-radius: 4px !important;
@@ -248,30 +281,69 @@ document.querySelector('form').addEventListener('submit', function(e) {
     // }
     // return true;
 });
+function extractYoutubeId(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+function extractVimeoId(url) {
+    const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+    const match = url.match(regExp);
+    return match ? match[5] : null;
+}
 // Initialize TinyMCE
 tinymce.init({
     selector: '#post-content',
     plugins: 'advlist autolink lists link image charmap preview anchor table media code',
-    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | code',
+    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media custommedia | code',
     skin: 'oxide',
     content_css: 'default',
     height: 500,
     images_upload_url: '/uploads',
     automatic_uploads: true,
+
+    // IMPORTANT: prevents TinyMCE from filtering your iframe/script/embed content
+    media_filter_html: false,
     media_live_embeds: true,
     media_alt_source: false,
     media_poster: false,
     media_dimensions: false,
-    extended_valid_elements: 'iframe[src|width|height|name|align|class|frameborder|allowfullscreen|allow]',
+
+    // Allow advanced embeds
+    extended_valid_elements: 'iframe[src|width|height|name|align|class|frameborder|allowfullscreen|allow],script[src|async|defer|type|charset],blockquote[class|data-*|cite|dir|lang|style|title]',
+    valid_children: '+body[style|script|iframe|blockquote],+div[iframe|script|blockquote],+p[iframe|script|blockquote]',
+
     setup: function(editor) {
+        // Live SEO trigger
         editor.on('keyup', function() {
             analyzeSEO();
         });
-        
+
+        // Convert link to embed code
+        function convertLinkToEmbed(link) {
+            const ytMatch = link.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^\s&]+)/);
+            if (ytMatch) {
+                return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
+            }
+
+            const xMatch = link.match(/(?:https?:\/\/)?(?:x\.com|twitter\.com)\/[^\s]+/);
+            if (xMatch) {
+                return `
+                    <blockquote class="twitter-tweet">
+                    <a href="${xMatch[0]}"></a>
+                    </blockquote>
+                    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"><\/script>`;
+            }
+
+            // Default: link only
+            return `<a href="${link}" target="_blank">${link}</a>`;
+        }
+
         // Add custom media embed button
         editor.ui.registry.addButton('custommedia', {
             icon: 'embed',
-            tooltip: 'Embed Media',
+            tooltip: 'Embed Media (YouTube/X)',
             onAction: function() {
                 editor.windowManager.open({
                     title: 'Embed Media',
@@ -281,7 +353,7 @@ tinymce.init({
                             {
                                 type: 'textarea',
                                 name: 'embedCode',
-                                label: 'Paste embed code (YouTube, Twitter, etc.)'
+                                label: 'Paste link or embed code (YouTube, X)'
                             }
                         ]
                     },
@@ -297,25 +369,15 @@ tinymce.init({
                         }
                     ],
                     onSubmit: function(api) {
-                        const embedCode = api.getData().embedCode;
-                        editor.insertContent(embedCode);
+                        const embedInput = api.getData().embedCode.trim();
+                        const converted = convertLinkToEmbed(embedInput);
+                        editor.insertContent(converted);
                         api.close();
                     }
                 });
             }
         });
-    },
-    // Allow iframes and other embedded content
-    valid_children: '+body[style],+div[iframe],+p[iframe]',
-    // Whitelist common embed domains
-    iframe_whitelist: [
-        'https://www.youtube.com',
-        'https://player.vimeo.com',
-        'https://www.facebook.com',
-        'https://platform.twitter.com',
-        'https://www.instagram.com',
-        'https://open.spotify.com'
-    ]
+    }
 });
 
 // Character counters
@@ -343,7 +405,7 @@ function analyzeSEO() {
     // Content analysis
     const textContent = tinymce.get('post-content').getContent({format: 'text'});
     const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
-    const lengthGood = wordCount >= 800;
+    const lengthGood = wordCount >= 400;
     updateFactor('factor-length', lengthGood, `Content: ${wordCount} words`);
     
     // Heading analysis

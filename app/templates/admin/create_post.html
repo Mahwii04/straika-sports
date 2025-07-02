@@ -252,7 +252,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
 tinymce.init({
     selector: '#post-content',
     plugins: 'advlist autolink lists link image charmap preview anchor table media code',
-    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | code',
+    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | media',
     skin: 'oxide',
     content_css: 'default',
     height: 500,
@@ -343,7 +343,7 @@ function analyzeSEO() {
     // Content analysis
     const textContent = tinymce.get('post-content').getContent({format: 'text'});
     const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
-    const lengthGood = wordCount >= 800;
+    const lengthGood = wordCount >= 400;
     updateFactor('factor-length', lengthGood, `Content: ${wordCount} words`);
     
     // Heading analysis
