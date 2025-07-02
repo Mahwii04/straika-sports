@@ -251,18 +251,71 @@ document.querySelector('form').addEventListener('submit', function(e) {
 // Initialize TinyMCE
 tinymce.init({
     selector: '#post-content',
-    plugins: 'advlist autolink lists link image charmap preview anchor table',
-    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+    plugins: 'advlist autolink lists link image charmap preview anchor table media code',
+    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | code',
     skin: 'oxide',
     content_css: 'default',
     height: 500,
-    images_upload_url: '/upload-image', // Your image upload endpoint
+    images_upload_url: '/uploads',
     automatic_uploads: true,
+    media_live_embeds: true,
+    media_alt_source: false,
+    media_poster: false,
+    media_dimensions: false,
+    extended_valid_elements: 'iframe[src|width|height|name|align|class|frameborder|allowfullscreen|allow]',
     setup: function(editor) {
         editor.on('keyup', function() {
             analyzeSEO();
         });
-    }
+        
+        // Add custom media embed button
+        editor.ui.registry.addButton('custommedia', {
+            icon: 'embed',
+            tooltip: 'Embed Media',
+            onAction: function() {
+                editor.windowManager.open({
+                    title: 'Embed Media',
+                    body: {
+                        type: 'panel',
+                        items: [
+                            {
+                                type: 'textarea',
+                                name: 'embedCode',
+                                label: 'Paste embed code (YouTube, Twitter, etc.)'
+                            }
+                        ]
+                    },
+                    buttons: [
+                        {
+                            type: 'cancel',
+                            text: 'Cancel'
+                        },
+                        {
+                            type: 'submit',
+                            text: 'Embed',
+                            primary: true
+                        }
+                    ],
+                    onSubmit: function(api) {
+                        const embedCode = api.getData().embedCode;
+                        editor.insertContent(embedCode);
+                        api.close();
+                    }
+                });
+            }
+        });
+    },
+    // Allow iframes and other embedded content
+    valid_children: '+body[style],+div[iframe],+p[iframe]',
+    // Whitelist common embed domains
+    iframe_whitelist: [
+        'https://www.youtube.com',
+        'https://player.vimeo.com',
+        'https://www.facebook.com',
+        'https://platform.twitter.com',
+        'https://www.instagram.com',
+        'https://open.spotify.com'
+    ]
 });
 
 // Character counters
