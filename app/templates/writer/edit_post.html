@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Post - Writer Dashboard{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <h1>Edit Post</h1>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        
+        <div class="editor-grid">
+            <div class="editor-main">
+                <div class="form-group">
+                    {{ form.title.label }}
+                    {{ form.title(class="form-control") }}
+                    {% for error in form.title.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.slug.label }}
+                    {{ form.slug(class="form-control") }}
+                    {% for error in form.slug.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.excerpt.label }}
+                    {{ form.excerpt(class="form-control", rows=4) }}
+                    {% for error in form.excerpt.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.content.label }}
+                    {{ form.content(class="form-control", rows=15, id="post-content") }}
+                    {% for error in form.content.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                    <div id="editor-toolbar">
+                        <button type="button" class="format-btn" data-command="bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="format-btn" data-command="italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="format-btn" data-command="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="format-btn" data-command="insertOrderedList"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="format-btn" data-command="createLink"><i class="fas fa-link"></i></button>
+                        <button type="button" class="format-btn" data-command="insertImage"><i class="fas fa-image"></i></button>
+                        <button type="button" class="format-btn" data-command="undo"><i class="fas fa-undo"></i></button>
+                        <button type="button" class="format-btn" data-command="redo"><i class="fas fa-redo"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="editor-sidebar">
+                <div class="sidebar-card">
+                    <h3>Publish Settings</h3>
+                    <div class="form-group">
+                        {{ form.category.label }}
+                        {{ form.category(class="form-control") }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.featured_image.label }}
+                        {{ form.featured_image(class="form-control") }}
+                        {% if post.featured_image %}
+                        <div class="current-image mt-2">
+                            <img src="{{ post.featured_image }}" alt="Current featured image" style="max-width: 100%; border-radius: 4px;">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="remove_featured_image" id="remove-featured-image">
+                                <label class="form-check-label" for="remove-featured-image">
+                                    Remove current image
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.status.label }}
+                        {{ form.status(class="form-control") }}
+                    </div>
+                    
+                    <button type="submit" class="publish-btn">Update Post</button>
+                </div>
+                
+                <div class="sidebar-card">
+                    <h3>SEO Analysis</h3>
+                    <div class="seo-score">
+                        <div class="score-circle" id="seo-score-circle">
+                            <span id="seo-score-letter">{{ post.seo_score or '-' }}</span>
+                        </div>
+                        <div class="score-feedback" id="seo-feedback">
+                            {% if post.seo_score %}
+                                {{ get_seo_feedback(post.seo_score) }}
+                            {% else %}
+                                Update content to see SEO analysis
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="seo-factors">
+                        <div class="factor" id="factor-title">
+                            <i class="fas {% if post.title|length >= 40 and post.title|length <= 60 %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                            <span>Title ({{ post.title|length }}/60)</span>
+                        </div>
+                        <div class="factor" id="factor-headings">
+                            <i class="fas {% if post.content.count('<h') >= 2 %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                            <span>Headings ({{ post.content.count('<h') }})</span>
+                        </div>
+                        <div class="factor" id="factor-length">
+                            <i class="fas {% if post.content|length >= 3000 %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                            <span>Content length ({{ post.content.split()|length }} words)</span>
+                        </div>
+                        <div class="factor" id="factor-images">
+                            <i class="fas {% if post.content.count('<img') >= 1 %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                            <span>Images ({{ post.content.count('<img') }})</span>
+                        </div>
+                        <div class="factor" id="factor-links">
+                            <i class="fas {% if post.content.count('<a href') >= 2 %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                            <span>Links ({{ post.content.count('<a href') }})</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formatting toolbar functionality
+    const formatButtons = document.querySelectorAll('.format-btn');
+    const contentInput = document.getElementById('post-content');
+    
+    formatButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const command = this.getAttribute('data-command');
+            
+            if (command === 'createLink' || command === 'insertImage') {
+                let url = prompt('Enter the URL:');
+                if (url) {
+                    document.execCommand(command, false, url);
+                }
+            } else {
+                document.execCommand(command, false, null);
+            }
+            
+            contentInput.focus();
+        });
+    });
+    
+    // SEO Analysis Script
+    const titleInput = document.getElementById('title');
+    
+    function analyzeSEO() {
+        // Title analysis
+        const titleLength = titleInput.value.length;
+        const titleGood = titleLength >= 40 && titleLength <= 100;
+        updateFactor('factor-title', titleGood, `Title (${titleLength}/100)`);
+        
+        // Content analysis
+        const content = contentInput.value;
+        const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
+        
+        // Heading count
+        const headingMatches = content.match(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi) || [];
+        const headingCount = headingMatches.length;
+        const headingsGood = headingCount >= 2;
+        updateFactor('factor-headings', headingsGood, `Headings (${headingCount})`);
+        
+        // Word count
+        const lengthGood = wordCount >= 800;
+        updateFactor('factor-length', lengthGood, `Content length (${wordCount} words)`);
+        
+        // Image count
+        const imageMatches = content.match(/<img[^>]*>/gi) || [];
+        const imageCount = imageMatches.length;
+        const imagesGood = imageCount >= 1;
+        updateFactor('factor-images', imagesGood, `Images (${imageCount})`);
+        
+        // Link count
+        const linkMatches = content.match(/<a[^>]*href=["'][^"']*["'][^>]*>/gi) || [];
+        const linkCount = linkMatches.length;
+        const linksGood = linkCount >= 1;
+        updateFactor('factor-links', linksGood, `Links (${linkCount})`);
+        
+        // Calculate overall score
+        let score = 0;
+        if (titleGood) score += 20;
+        if (headingsGood) score += 20;
+        if (lengthGood) score += 20;
+        if (imagesGood) score += 20;
+        if (linksGood) score += 20;
+        
+        // Determine letter grade
+        updateScore(score);
+    }
+    
+    function updateFactor(factorId, isGood, text) {
+        const factor = document.getElementById(factorId);
+        const icon = factor.querySelector('i');
+        icon.className = isGood ? 'fas fa-check-circle' : 'fas fa-times-circle';
+        icon.style.color = isGood ? '#28a745' : '#dc3545';
+        factor.querySelector('span').textContent = text;
+    }
+    
+    function updateScore(score) {
+        const seoScoreLetter = document.getElementById('seo-score-letter');
+        const seoFeedback = document.getElementById('seo-feedback');
+        const scoreCircle = document.getElementById('seo-score-circle');
+        
+        let letterGrade, feedback, color;
+        if (score >= 90) {
+            letterGrade = 'A';
+            feedback = 'Excellent! This post meets all SEO best practices.';
+            color = '#28a745';
+        } else if (score >= 75) {
+            letterGrade = 'B';
+            feedback = 'Good. This post meets most SEO requirements.';
+            color = '#5cb85c';
+        } else if (score >= 50) {
+            letterGrade = 'C';
+            feedback = 'Average. Consider improving some SEO factors.';
+            color = '#ffc107';
+        } else if (score >= 25) {
+            letterGrade = 'D';
+            feedback = 'Below average. Needs significant SEO improvements.';
+            color = '#fd7e14';
+        } else {
+            letterGrade = 'F';
+            feedback = 'Poor. This post needs major SEO work.';
+            color = '#dc3545';
+        }
+        
+        seoScoreLetter.textContent = letterGrade;
+        seoFeedback.textContent = feedback;
+        scoreCircle.style.borderColor = color;
+        seoScoreLetter.style.color = color;
+    }
+    
+    // Set up event listeners
+    titleInput.addEventListener('input', analyzeSEO);
+    contentInput.addEventListener('input', analyzeSEO);
+    
+    // Initial analysis
+    analyzeSEO();
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+.editor-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.editor-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.editor-main {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.editor-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sidebar-card h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+}
+
+.form-error {
+    color: #dc3545;
+    font-size: 0.9rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+textarea.form-control {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.publish-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+.publish-btn:hover {
+    background-color: var(--secondary-color);
+}
+
+.seo-score {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.score-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 4px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.score-feedback {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.seo-factors {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.factor {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.factor i {
+    font-size: 1.1rem;
+}
+
+#editor-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
+.format-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #666;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+}
+
+.format-btn:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+.current-image {
+    margin-top: 1rem;
+}
+
+.current-image img {
+    max-width: 100%;
+    border-radius: 4px;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+}
+
+.form-check-input {
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 992px) {
+    .editor-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
