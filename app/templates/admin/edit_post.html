@@ -37,7 +37,7 @@
                 
                 <div class="form-group">
                     {{ form.content.label }}
-                    {{ form.content(class="form-control", rows=15, id="post-content") }}
+                    {{ form.content(class="form-control", id="post-content") }}
                     {% for error in form.content.errors %}
                     <span class="form-error">{{ error }}</span>
                     {% endfor %}
@@ -219,4 +219,188 @@ textarea.form-control {
     }
 }
 </style>
+{% endblock %}
+{% block scripts %}
+<!-- TinyMCE Rich Text Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+<script>
+    // Add this before your TinyMCE initialization
+document.querySelector('form').addEventListener('submit', function(e) {
+    // Force TinyMCE to sync its content back to the textarea
+    tinymce.triggerSave();
+    
+    // Optional: Validate content before submission
+    // const content = tinymce.get('post-content').getContent();
+    // if (!content || content.trim() === '') {
+    //     e.preventDefault();
+    //     alert('Please enter some content for your post');
+    //     return false;
+    // }
+    // return true;
+});
+// Initialize TinyMCE
+tinymce.init({
+    selector: '#post-content',
+    plugins: 'advlist autolink lists link image charmap preview anchor table media code',
+    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | code',
+    skin: 'oxide',
+    content_css: 'default',
+    height: 500,
+    images_upload_url: '/uploads',
+    automatic_uploads: true,
+    media_live_embeds: true,
+    media_alt_source: false,
+    media_poster: false,
+    media_dimensions: false,
+    extended_valid_elements: 'iframe[src|width|height|name|align|class|frameborder|allowfullscreen|allow]',
+    setup: function(editor) {
+        editor.on('keyup', function() {
+            analyzeSEO();
+        });
+        
+        // Add custom media embed button
+        editor.ui.registry.addButton('custommedia', {
+            icon: 'embed',
+            tooltip: 'Embed Media',
+            onAction: function() {
+                editor.windowManager.open({
+                    title: 'Embed Media',
+                    body: {
+                        type: 'panel',
+                        items: [
+                            {
+                                type: 'textarea',
+                                name: 'embedCode',
+                                label: 'Paste embed code (YouTube, Twitter, etc.)'
+                            }
+                        ]
+                    },
+                    buttons: [
+                        {
+                            type: 'cancel',
+                            text: 'Cancel'
+                        },
+                        {
+                            type: 'submit',
+                            text: 'Embed',
+                            primary: true
+                        }
+                    ],
+                    onSubmit: function(api) {
+                        const embedCode = api.getData().embedCode;
+                        editor.insertContent(embedCode);
+                        api.close();
+                    }
+                });
+            }
+        });
+    },
+    // Allow iframes and other embedded content
+    valid_children: '+body[style],+div[iframe],+p[iframe]',
+    // Whitelist common embed domains
+    iframe_whitelist: [
+        'https://www.youtube.com',
+        'https://player.vimeo.com',
+        'https://www.facebook.com',
+        'https://platform.twitter.com',
+        'https://www.instagram.com',
+        'https://open.spotify.com'
+    ]
+});
+
+// Character counters
+document.getElementById('post-title').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('title-count').textContent = count;
+    analyzeSEO();
+});
+
+document.getElementById('post-excerpt').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('excerpt-count').textContent = count;
+});
+
+// SEO Analysis
+function analyzeSEO() {
+    const title = document.getElementById('post-title').value;
+    const content = tinymce.get('post-content').getContent();
+    
+    // Title analysis
+    const titleLen = title.length;
+    const titleGood = titleLen >= 60 && titleLen <= 100;
+    updateFactor('factor-title', titleGood, `Title (${titleLen}/100)`);
+    
+    // Content analysis
+    const textContent = tinymce.get('post-content').getContent({format: 'text'});
+    const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
+    const lengthGood = wordCount >= 800;
+    updateFactor('factor-length', lengthGood, `Content: ${wordCount} words`);
+    
+    // Heading analysis
+    const headingMatches = content.match(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi) || [];
+    const headingCount = headingMatches.length;
+    const headingsGood = headingCount >= 2;
+    updateFactor('factor-headings', headingsGood, `Headings: ${headingCount}`);
+    
+    // Image analysis
+    const imageMatches = content.match(/<img[^>]*>/gi) || [];
+    const imageCount = imageMatches.length;
+    const imagesGood = imageCount >= 1;
+    updateFactor('factor-images', imagesGood, `Images: ${imageCount}`);
+    
+    // Link analysis
+    const linkMatches = content.match(/<a[^>]*href=["'][^"']*["'][^>]*>/gi) || [];
+    const linkCount = linkMatches.length;
+    const linksGood = linkCount >= 1;
+    updateFactor('factor-links', linksGood, `Links: ${linkCount}`);
+    
+    // Calculate overall score
+    let score = 0;
+    if (titleGood) score += 20;
+    if (lengthGood) score += 20;
+    if (headingsGood) score += 20;
+    if (imagesGood) score += 20;
+    if (linksGood) score += 20;
+    
+    // Update score display
+    updateScore(score);
+}
+
+function updateFactor(factorId, isGood, text) {
+    const factor = document.getElementById(factorId);
+    const icon = factor.querySelector('i');
+    icon.className = isGood ? 'fas fa-check-circle' : 'fas fa-times-circle';
+    factor.querySelector('span').textContent = text;
+}
+
+function updateScore(score) {
+    const scoreDisplay = document.getElementById('seo-score-display');
+    const letter = scoreDisplay.querySelector('.score-letter');
+    const feedback = scoreDisplay.querySelector('.score-feedback');
+    
+    let grade, color, message;
+    
+    if (score >= 90) {
+        grade = 'A'; color = '#28a745'; message = 'Excellent! Perfect SEO optimization';
+    } else if (score >= 75) {
+        grade = 'B'; color = '#5cb85c'; message = 'Good. Meets most SEO requirements';
+    } else if (score >= 50) {
+        grade = 'C'; color = '#ffc107'; message = 'Average. Could use improvement';
+    } else if (score >= 25) {
+        grade = 'D'; color = '#fd7e14'; message = 'Below average. Needs work';
+    } else {
+        grade = 'F'; color = '#dc3545'; message = 'Poor. Major SEO issues';
+    }
+    
+    letter.textContent = grade;
+    letter.style.borderColor = color;
+    letter.style.color = color;
+    feedback.textContent = message;
+}
+
+// Initial analysis
+document.addEventListener('DOMContentLoaded', function() {
+    analyzeSEO();
+});
+</script>
 {% endblock %}
