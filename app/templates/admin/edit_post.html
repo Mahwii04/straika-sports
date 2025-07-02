@@ -2,99 +2,9 @@
 
 {% block title %}Edit Post - Admin Dashboard{% endblock %}
 
-{% block content %}
-<div class="editor-container">
-    <h1>Edit Post</h1>
-    
-    <form method="POST" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        
-        <div class="editor-grid">
-            <div class="editor-main">
-                <div class="form-group">
-                    {{ form.title.label }}
-                    {{ form.title(class="form-control") }}
-                    {% for error in form.title.errors %}
-                    <span class="form-error">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="form-group">
-                    {{ form.slug.label }}
-                    {{ form.slug(class="form-control") }}
-                    {% for error in form.slug.errors %}
-                    <span class="form-error">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="form-group">
-                    {{ form.excerpt.label }}
-                    {{ form.excerpt(class="form-control", rows=4) }}
-                    {% for error in form.excerpt.errors %}
-                    <span class="form-error">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="form-group">
-                    {{ form.content.label }}
-                    {{ form.content(class="form-control", id="post-content") }}
-                    {% for error in form.content.errors %}
-                    <span class="form-error">{{ error }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <div class="editor-sidebar">
-                <div class="sidebar-card">
-                    <h3>Publish Settings</h3>
-                    <div class="form-group">
-                        {{ form.category.label }}
-                        {{ form.category(class="form-control") }}
-                    </div>
-                    
-                    <div class="form-group">
-                        {{ form.featured_image.label }}
-                        {{ form.featured_image(class="form-control") }}
-                        {% if post.featured_image %}
-                        <div class="current-image mt-2">
-                            <img src="{{ post.featured_image }}" alt="Current featured image" style="max-width: 100%; border-radius: 4px;">
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <button type="submit" class="publish-btn">Update Post</button>
-                </div>
-                
-                <div class="sidebar-card">
-                    <h3>Post Analytics</h3>
-                    <div class="analytics-item">
-                        <span class="analytics-label">Views:</span>
-                        <span class="analytics-value">{{ post.views }}</span>
-                    </div>
-                    <div class="analytics-item">
-                        <span class="analytics-label">Reading Time:</span>
-                        <span class="analytics-value">{{ post.reading_time }} min</span>
-                    </div>
-                    <div class="analytics-item">
-                        <span class="analytics-label">SEO Score:</span>
-                        <span class="analytics-value score-{{ post.seo_score|lower }}">{{ post.seo_score }}</span>
-                    </div>
-                    <div class="analytics-item">
-                        <span class="analytics-label">Created:</span>
-                        <span class="analytics-value">{{ post.created_at.strftime('%Y-%m-%d') }}</span>
-                    </div>
-                    <div class="analytics-item">
-                        <span class="analytics-label">Last Updated:</span>
-                        <span class="analytics-value">{{ post.updated_at.strftime('%Y-%m-%d') }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
-{% endblock %}
-
 {% block styles %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.0/dist/css/tom-select.css" rel="stylesheet">
 <style>
 .editor-container {
     max-width: 1400px;
@@ -191,32 +101,168 @@ textarea.form-control {
     border-radius: 4px;
 }
 
-.analytics-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #eee;
-}
-
-.analytics-label {
-    font-weight: bold;
-}
-
-.analytics-value {
-    color: #666;
-}
-
-.score-a { color: #28a745; }
-.score-b { color: #5cb85c; }
-.score-c { color: #ffc107; }
-.score-d { color: #fd7e14; }
-.score-f { color: #dc3545; }
-
 @media (max-width: 992px) {
     .editor-grid {
         grid-template-columns: 1fr;
     }
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <h1>Edit Post</h1>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        
+        <div class="editor-grid">
+            <div class="editor-main">
+                <div class="form-group">
+                    {{ form.title.label }}
+                    {{ form.title(class="form-control") }}
+                    {% for error in form.title.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.slug.label }}
+                    {{ form.slug(class="form-control") }}
+                    {% for error in form.slug.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.excerpt.label }}
+                    {{ form.excerpt(class="form-control", rows=4) }}
+                    {% for error in form.excerpt.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.content.label }}
+                    {{ form.content(class="form-control", rows=15, id="post-content") }}
+                    {% for error in form.content.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="editor-sidebar">
+                <div class="sidebar-card">
+                    <h3>Publish Settings</h3>
+                    <div class="form-group">
+                        {{ form.category.label }}
+                        {{ form.category(class="form-control") }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.featured_image.label }}
+                        {{ form.featured_image(class="form-control") }}
+                        {% if post.featured_image %}
+                        <div class="current-image mt-2">
+                            <img src="{{ post.featured_image }}" alt="Current featured image" style="max-width: 100%; border-radius: 4px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="publish-btn">Update Post</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    // Add this before your TinyMCE initialization
+document.querySelector('form').addEventListener('submit', function(e) {
+    // Force TinyMCE to sync its content back to the textarea
+    tinymce.triggerSave();
+    
+    // Optional: Validate content before submission
+    // const content = tinymce.get('post-content').getContent();
+    // if (!content || content.trim() === '') {
+    //     e.preventDefault();
+    //     alert('Please enter some content for your post');
+    //     return false;
+    // }
+    // return true;
+});
+// Initialize TinyMCE
+tinymce.init({
+    selector: '#post-content',
+    plugins: 'advlist autolink lists link image charmap preview anchor table media code',
+    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | code',
+    skin: 'oxide',
+    content_css: 'default',
+    height: 500,
+    images_upload_url: '/uploads',
+    automatic_uploads: true,
+    media_live_embeds: true,
+    media_alt_source: false,
+    media_poster: false,
+    media_dimensions: false,
+    extended_valid_elements: 'iframe[src|width|height|name|align|class|frameborder|allowfullscreen|allow]',
+    setup: function(editor) {
+        editor.on('keyup', function() {
+            analyzeSEO();
+        });
+        
+        // Add custom media embed button
+        editor.ui.registry.addButton('custommedia', {
+            icon: 'embed',
+            tooltip: 'Embed Media',
+            onAction: function() {
+                editor.windowManager.open({
+                    title: 'Embed Media',
+                    body: {
+                        type: 'panel',
+                        items: [
+                            {
+                                type: 'textarea',
+                                name: 'embedCode',
+                                label: 'Paste embed code (YouTube, Twitter, etc.)'
+                            }
+                        ]
+                    },
+                    buttons: [
+                        {
+                            type: 'cancel',
+                            text: 'Cancel'
+                        },
+                        {
+                            type: 'submit',
+                            text: 'Embed',
+                            primary: true
+                        }
+                    ],
+                    onSubmit: function(api) {
+                        const embedCode = api.getData().embedCode;
+                        editor.insertContent(embedCode);
+                        api.close();
+                    }
+                });
+            }
+        });
+    },
+    // Allow iframes and other embedded content
+    valid_children: '+body[style],+div[iframe],+p[iframe]',
+    // Whitelist common embed domains
+    iframe_whitelist: [
+        'https://www.youtube.com',
+        'https://player.vimeo.com',
+        'https://www.facebook.com',
+        'https://platform.twitter.com',
+        'https://www.instagram.com',
+        'https://open.spotify.com'
+    ]
+});
+</script>
 {% endblock %}
