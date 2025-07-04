@@ -4,66 +4,37 @@
 {% block content %}
 <div class="admin-container">
     <h1>Admin Dashboard</h1>
-    
+
     <div class="analytics-grid">
         <div class="analytics-card">
-            <h3>Total Views</h3>
-            <p class="stat">{{ analytics.total_views }}</p>
-            <div class="change positive">Last 30 days</div>
+            <h3>Today's Visitors</h3>
+            <p class="stat">{{ today_views }}</p>
+            <p class="change {% if today_views > yesterday_views %}positive{% else %}negative{% endif %}">
+                {% if yesterday_views > 0 %}
+                    {{ ((today_views - yesterday_views) / yesterday_views) * 100 | round(1) }}%
+                {% else %}
+                    100%
+                {% endif %}
+                from yesterday
+            </p>
         </div>
         
         <div class="analytics-card">
-            <h3>Unique Visitors</h3>
-            <p class="stat">{{ analytics.unique_visitors }}</p>
-            <div class="change positive">Last 30 days</div>
-        </div>
-        
-        <div class="analytics-card">
-            <h3>Avg. Reading Time</h3>
-            <p class="stat">{{ "%.1f"|format(analytics.avg_reading_time) }} min</p>
-            <div class="change positive">Across all posts</div>
-        </div>
-        
-        <div class="analytics-card">
-            <h3>New Users</h3>
-            <p class="stat">{{ analytics.user_growth|sum(attribute='new_users') }}</p>
-            <div class="change positive">Last 30 days</div>
+            <h3>Weekly Visitors</h3>
+            <p class="stat">{{ weekly_views }}</p>
         </div>
     </div>
+
     
-    <div class="charts-section">
-        <div class="chart-card">
-            <h3>Daily Traffic</h3>
-            <canvas id="trafficChart"></canvas>
-        </div>
-        
-        <div class="chart-card">
-            <h3>Traffic Sources</h3>
-            <canvas id="sourcesChart"></canvas>
-        </div>
-    </div>
-    
-    <div class="charts-section">
-        <div class="chart-card">
-            <h3>User Growth</h3>
-            <canvas id="usersChart"></canvas>
-        </div>
-        
-        <div class="chart-card">
-            <h3>Reading Time Distribution</h3>
-            <canvas id="readingChart"></canvas>
-        </div>
-    </div>
-    
-    <div class="recent-activity">
-        <h3>Top Performing Content</h3>
-        <table>
+
+    <div class="chart-card">
+        <h3>Popular Content</h3>
+        <table class="analytics-table">
             <thead>
                 <tr>
-                    <th>Post Title</th>
+                    <th>Post</th>
                     <th>Views</th>
                     <th>Category</th>
-                    <th>Avg. Read Time</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,13 +43,35 @@
                     <td><a href="{{ url_for('blog.post', slug=post.slug) }}">{{ post.title }}</a></td>
                     <td>{{ post.views }}</td>
                     <td>{{ post.category|capitalize }}</td>
-                    <td>{{ post.reading_time }} min</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
+    <br>
+    <div class="chart-card">
+        <h3>Traffic Sources</h3>
+        <table class="analytics-table">
+            <thead>
+                <tr>
+                    <th>Source</th>
+                    <th>Visits</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for source in analytics.traffic_sources %}
+                <tr>
+                    <td>{{ source.source or 'Direct' }}</td>
+                    <td>{{ source.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="chart-container">
+        <canvas id="viewsChart"></canvas>
+    </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -191,6 +184,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('viewsChart').getContext('2d');
+        const viewsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [{% for day in detailed_analytics.views_by_day %}"{{ day.date }}"{% if not loop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Daily Views',
+                    data: [{% for day in detailed_analytics.views_by_day %}{{ day.count }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    borderColor: '#1a73e8',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}
 

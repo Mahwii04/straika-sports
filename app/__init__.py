@@ -28,6 +28,8 @@ def create_app(config_name='default'):
     from app.routes import admin as admin_routes
     from app.routes import writer as writer_routes
     from app.routes import blog as blog_routes
+    from app import analytics
+    
 
     app.register_blueprint(main_routes)
     app.register_blueprint(auth_routes)

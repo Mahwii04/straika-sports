@@ -1,59 +1,74 @@
 # app/analytics.py
-from datetime import datetime, timedelta
-from app.models import Post, PageView, User, db
-from sqlalchemy import func, extract, and_
 
-def get_analytics_data(days=30):
-    # Calculate date ranges
-    end_date = datetime.utcnow()
-    start_date = end_date - timedelta(days=days)
+from datetime import datetime, timedelta
+from sqlalchemy import func, extract
+from app.models import PageView, Post, db
+
+def get_analytics_data():
+    # Basic counts
+    today = datetime.utcnow().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
     
-    # Website traffic data
-    daily_views = db.session.query(
-        func.date(PageView.timestamp).label('date'),
-        func.count(PageView.id).label('views')
-    ).filter(PageView.timestamp >= start_date)\
-     .group_by(func.date(PageView.timestamp))\
-     .order_by(func.date(PageView.timestamp)).all()
+    daily_views = PageView.query.filter(
+        func.date(PageView.timestamp) == today
+    ).count()
+    
+    weekly_views = PageView.query.filter(
+        func.date(PageView.timestamp) >= week_ago
+    ).count()
+    
+    monthly_views = PageView.query.filter(
+        func.date(PageView.timestamp) >= month_ago
+    ).count()
+    
+    # Popular posts
+    popular_posts = Post.query.join(PageView).group_by(Post.id).order_by(
+        func.count(PageView.id).desc()
+    ).limit(5).all()
     
     # Traffic sources
     traffic_sources = db.session.query(
         func.substr(PageView.referrer, 1, 50).label('source'),
         func.count(PageView.id).label('count')
-    ).filter(PageView.timestamp >= start_date)\
-     .group_by('source')\
-     .order_by(func.count(PageView.id).desc()).limit(5).all()
-    
-    # Popular posts
-    popular_posts = Post.query.join(PageView)\
-        .filter(PageView.timestamp >= start_date)\
-        .group_by(Post.id)\
-        .order_by(func.count(PageView.id).desc())\
-        .limit(5).all()
-    
-    # User growth
-    user_growth = db.session.query(
-        func.date(User.created_at).label('date'),
-        func.count(User.id).label('new_users')
-    ).filter(User.created_at >= start_date)\
-     .group_by(func.date(User.created_at))\
-     .order_by(func.date(User.created_at)).all()
-    
-    # Reading time distribution
-    reading_times = db.session.query(
-        func.floor(Post.reading_time/5)*5,  # Group by 5-minute intervals
-        func.count(Post.id)
-    ).group_by(func.floor(Post.reading_time/5))\
-     .order_by(func.floor(Post.reading_time/5)).all()
+    ).group_by('source').order_by(func.count(PageView.id).desc()).limit(5).all()
     
     return {
-        'daily_views': [{'date': str(date), 'views': views} for date, views in daily_views],
-        'traffic_sources': [{'source': source, 'count': count} for source, count in traffic_sources],
+        'daily_views': daily_views,
+        'weekly_views': weekly_views,
+        'monthly_views': monthly_views,
         'popular_posts': popular_posts,
-        'user_growth': [{'date': str(date), 'new_users': new_users} for date, new_users in user_growth],
-        'reading_times': [{'minutes': minutes, 'count': count} for minutes, count in reading_times],
-        'total_views': sum(view.views for view in daily_views),
-        'unique_visitors': db.session.query(func.count(func.distinct(PageView.ip_address)))
-                          .filter(PageView.timestamp >= start_date).scalar(),
-        'avg_reading_time': db.session.query(func.avg(Post.reading_time)).scalar() or 0
+        'traffic_sources': traffic_sources
+    }
+
+def get_detailed_analytics(days=30):
+    date_threshold = datetime.utcnow() - timedelta(days=days)
+    
+    # Views by day
+    views_by_day = db.session.query(
+        func.date(PageView.timestamp).label('date'),
+        func.count(PageView.id).label('count')
+    ).filter(
+        PageView.timestamp >= date_threshold
+    ).group_by(
+        func.date(PageView.timestamp)
+    ).order_by(
+        func.date(PageView.timestamp)
+    ).all()
+    
+    # Views by post category
+    views_by_category = db.session.query(
+        Post.category,
+        func.count(PageView.id).label('count')
+    ).join(
+        PageView
+    ).filter(
+        PageView.timestamp >= date_threshold
+    ).group_by(
+        Post.category
+    ).all()
+    
+    return {
+        'views_by_day': views_by_day,
+        'views_by_category': views_by_category
     }

@@ -8,7 +8,9 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, desc, distinct
 import os
 from werkzeug.utils import secure_filename
-from app.models import Post, HeroSlide 
+from app.models import Post, HeroSlide
+from app.utils import track_view 
+from app.analytics import get_analytics_data, get_detailed_analytics
 from app.forms import PostForm, ProfileForm, ChangePasswordForm, SiteSettingsForm, HeroSlideForm, NewsletterForm, DeleteForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
@@ -157,8 +159,35 @@ def dashboard():
         ).count(),
         'popular_posts': Post.query.order_by(Post.views.desc()).limit(5).all()
     }
+    today = datetime.utcnow().date()
+    yesterday = today - timedelta(days=1)
+    week_ago = today - timedelta(days=7)
     
-    return render_template('admin/dashboard.html', stats=stats)
+    today_views = PageView.query.filter(
+        func.date(PageView.timestamp) == today
+    ).count()
+    
+    yesterday_views = PageView.query.filter(
+        func.date(PageView.timestamp) == yesterday
+    ).count()
+    
+    weekly_views = PageView.query.filter(
+        func.date(PageView.timestamp) >= week_ago
+    ).count()
+    
+    # Get popular posts
+    popular_posts = Post.query.join(PageView).group_by(Post.id).order_by(
+        func.count(PageView.id).desc()
+    ).limit(5).all()
+    
+    return render_template('admin/dashboard.html',
+                           stats=stats,
+                           detailed_analytics=get_detailed_analytics,
+                           analytics_data=get_analytics_data,
+                         today_views=today_views,
+                         yesterday_views=yesterday_views,
+                         weekly_views=weekly_views,
+                         popular_posts=popular_posts)
 
 
 @admin.route('/hero-slides', methods=['GET', 'POST'])
@@ -333,7 +362,7 @@ def edit_post(post_id):
     if form.validate_on_submit():
         status_changed = form.status.data != post.status
         becoming_published = form.status.data == 'published' and post.status != 'published'
-        
+
         post.title = form.title.data
         post.slug = form.slug.data
         post.content = form.content.data
@@ -988,7 +1017,13 @@ blog = Blueprint('blog', __name__)
 @blog.route('/post/<slug>')
 def post(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
-    return render_template('blog/post.html', post=post)
+    track_view(post)  # Track the view
+    
+    # Get previous and next posts
+    prev_post = Post.query.filter(Post.id < post.id).order_by(Post.id.desc()).first()
+    next_post = Post.query.filter(Post.id > post.id).order_by(Post.id.asc()).first()
+    
+    return render_template('blog/post.html', post=post, prev_post=prev_post, next_post=next_post)
 
 @blog.route('/category/<category>')
 def category(category):

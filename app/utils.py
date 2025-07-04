@@ -1,34 +1,36 @@
-from datetime import datetime, timedelta
-from functools import wraps
-from flask import current_app
+# app/utils.py
 
-def api_limit_guard(f):
-    """Decorator to protect API call functions from exceeding limits"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not rate_limit_check():
-            current_app.logger.warning("API call blocked - limit reached")
-            return None
-        return f(*args, **kwargs)
-    return decorated_function
+from flask import request
+from sqlalchemy import func
+from datetime import datetime
+from app.models import Post, PageView, db
 
-def rate_limit_check():
-    """Check if we're under daily API call limit"""
-    api_config = current_app.config.get('API_CONFIG', {}).get('FOOTBALL_DATA_API', {})
-    max_calls = api_config.get('MAX_CALLS_PER_DAY', 95)
+def track_view(post):
+    # Don't track views from admin or preview pages
+    if request.path.startswith('/admin') or request.path.startswith('/preview'):
+        return
     
-    # In a real implementation, you'd want to persist this counter
-    # between app restarts (e.g., in database or Redis)
-    today = datetime.now().date().isoformat()
-    call_count = getattr(current_app, '_api_call_count', {}).get(today, 0)
+    # Update post view count
+    post.views += 1
     
-    return call_count < max_calls
-
-def log_api_call():
-    """Track API calls to stay under limits"""
-    today = datetime.now().date().isoformat()
+    # Check if this IP already viewed this post today
+    today = datetime.utcnow().date()
+    existing_view = PageView.query.filter(
+        PageView.post_id == post.id,
+        func.date(PageView.timestamp) == today,
+        PageView.ip_address == request.remote_addr
+    ).first()
     
-    if not hasattr(current_app, '_api_call_count'):
-        current_app._api_call_count = {}
-    
-    current_app._api_call_count[today] = current_app._api_call_count.get(today, 0) + 1
+    if not existing_view:
+        post.views += 1
+        
+        view = PageView(
+            post_id=post.id,
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string,
+            referrer=request.referrer,
+            timestamp=datetime.utcnow()
+        )
+        
+        db.session.add(view)
+        db.session.commit()
