@@ -22,12 +22,9 @@ main = Blueprint('main', __name__)
 
 
 @main.route('/run-migrations')
-@login_required
+
 def run_migrations():
     """Endpoint to run database migrations."""
-    if not current_user.is_admin():
-        flash('You do not have permission to run migrations.', 'danger')
-        return redirect(url_for('main.index'))
     
 
     from flask_migrate import upgrade
