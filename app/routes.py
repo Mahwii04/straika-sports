@@ -73,11 +73,10 @@ def page_not_found(e):
 @main.route('/sitemap.xml')
 def sitemap():
     posts = Post.query.filter_by(status='published').all()
-    categories = ['football', 'tennis', 'basketball', 'esports']
+    categories = Post.query.with_entities(Post.category).distinct().all()
     now = datetime.utcnow().date().isoformat()
     sitemap_xml = render_template('sitemap.xml', posts=posts, categories=categories, now=now)
     return Response(sitemap_xml, mimetype='application/xml')
-
 
 
 @main.route('/about')
