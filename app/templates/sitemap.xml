@@ -3,23 +3,28 @@
     <url>
         <loc>{{ url_for('main.index', _external=True) }}</loc>
         <priority>1.0</priority>
+        <lastmod>{{ now().date().isoformat() }}</lastmod>
     </url>
     <url>
         <loc>{{ url_for('main.about', _external=True) }}</loc>
         <priority>0.5</priority>
+        <lastmod>{{ now().date().isoformat() }}</lastmod>
     </url>
     <url>
         <loc>{{ url_for('blog.latest', _external=True) }}</loc>
         <priority>0.7</priority>
+        <lastmod>{{ now().date().isoformat() }}</lastmod>
     </url>
     <url>
         <loc>{{ url_for('blog.predictions', _external=True) }}</loc>
         <priority>0.6</priority>
+        <lastmod>{{ now().date().isoformat() }}</lastmod>
     </url>
     {% for category in ['football', 'tennis', 'basketball', 'esports'] %}
     <url>
         <loc>{{ url_for('blog.category', category=category, _external=True) }}</loc>
         <priority>0.6</priority>
+        <lastmod>{{ now().date().isoformat() }}</lastmod>
     </url>
     {% endfor %}
     {% for post in posts %}
