@@ -39,6 +39,10 @@ class PostForm(FlaskForm):
         ('basketball', 'Basketball'), 
         ('esports', 'Esports')
     ])
+    status = SelectField('Status', choices=[
+        ('draft', 'Draft'),
+        ('published', 'Published')
+    ], default='draft')
     featured_image = StringField('Featured Image URL')
     submit = SubmitField('Publish')
 

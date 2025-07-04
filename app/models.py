@@ -41,6 +41,7 @@ class Post(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_post_user_id'))  
     views = db.Column(db.Integer, default=0)
+    status = db.Column(db.String(20), default='draft')  # 'draft' or 'published'
     reading_time = db.Column(db.Integer)
     # SEO rating represented as a single character (e.g., A, B, C, etc.)
     seo_score = db.Column(db.String(1))

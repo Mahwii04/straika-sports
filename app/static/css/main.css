@@ -382,6 +382,24 @@ body.dark-mode {
     margin-bottom: 1.5rem;
 }
 
+/* In your CSS */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status-draft {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-published {
+    background-color: #28a745;
+    color: #fff;
+}
+
 .hot-tag {
     display: inline-flex;
     align-items: center;

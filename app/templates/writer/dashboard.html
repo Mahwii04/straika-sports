@@ -1,9 +1,22 @@
 {% extends "writer/base.html" %}
 
 {% block content %}
-<div class="dashboard-container">
-    <!-- Your existing stats cards here -->
-
+    <div class="dashboard-container">
+        <!-- Your existing stats cards here -->
+        <div class="stats-grid">
+        <div class="stats-card">
+            <h3>Total Posts</h3>
+            <p class="stat">{{ total_posts }}</p>
+        </div>
+        <div class="stats-card">
+            <h3>Published</h3>
+            <p class="stat">{{ published_posts }}</p>
+        </div>
+        <div class="stats-card">
+            <h3>Drafts</h3>
+            <p class="stat">{{ draft_posts }}</p>
+        </div>
+    </div>
     <div class="charts-section">
         <div class="card">
             <h4>Views Over Time</h4>

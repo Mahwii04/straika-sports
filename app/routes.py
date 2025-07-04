@@ -50,11 +50,11 @@ def index():
             else:
                 slide.link = url_for('main.index')
                 
-    latest_posts = Post.query.order_by(Post.created_at.desc()).limit(4).all()
-    football_posts = Post.query.filter_by(category='football').order_by(Post.created_at.desc()).limit(3).all()
-    tennis_posts = Post.query.filter_by(category='tennis').order_by(Post.created_at.desc()).limit(3).all()
-    basketball_posts = Post.query.filter_by(category='basketball').order_by(Post.created_at.desc()).limit(3).all()
-    esports_posts = Post.query.filter_by(category='esports').order_by(Post.created_at.desc()).limit(3).all()
+    latest_posts = Post.query.filter_by(status='published').order_by(Post.created_at.desc()).limit(4).all()
+    football_posts = Post.query.filter_by(status='published', category='football').order_by(Post.created_at.desc()).limit(3).all()
+    tennis_posts = Post.query.filter_by(status='published', category='tennis').order_by(Post.created_at.desc()).limit(3).all()
+    basketball_posts = Post.query.filter_by(status='published', category='basketball').order_by(Post.created_at.desc()).limit(3).all()
+    esports_posts = Post.query.filter_by(status='published', category='esports').order_by(Post.created_at.desc()).limit(3).all()
     
     return render_template('blog/index.html', 
                          hero_slides=hero_slides,
@@ -237,7 +237,7 @@ def posts():
     page = request.args.get('page', 1, type=int)
     category = request.args.get('category')
     author = request.args.get('author')
-    status = request.args.get('status')
+    status = request.args.get('status', '')
     
     # Start with base query
     query = Post.query
@@ -299,8 +299,12 @@ def create_post():
                 featured_image=featured_image,
                 user_id=current_user.id,
                 reading_time=reading_time,
+                status=form.status.data,
                 created_at=datetime.utcnow()
             )
+
+            if form.status.data == 'published':
+                post.published_at = datetime.utcnow()
             
             db.session.add(post)
             db.session.commit()
@@ -323,17 +327,38 @@ def create_post():
 @admin.route('/edit-post/<int:post_id>', methods=['GET', 'POST'])
 @login_required
 def edit_post(post_id):
-    if not current_user.is_admin():
-        return redirect(url_for('main.index'))
-    
     post = Post.query.get_or_404(post_id)
     form = PostForm(obj=post)
     
     if form.validate_on_submit():
-        # Update post logic
-        pass
+        status_changed = form.status.data != post.status
+        becoming_published = form.status.data == 'published' and post.status != 'published'
+        
+        post.title = form.title.data
+        post.slug = form.slug.data
+        post.content = form.content.data
+        post.excerpt = form.excerpt.data
+        post.category = form.category.data
+        post.featured_image = form.featured_image.data
+        post.status = form.status.data
+        
+        if becoming_published:
+            post.published_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        if status_changed:
+            if becoming_published:
+                flash('Post published successfully!', 'success')
+            else:
+                flash('Post moved to drafts.', 'info')
+        else:
+            flash('Post updated successfully!', 'success')
+            
+        return redirect(url_for('admin.posts'))
     
     return render_template('admin/edit_post.html', form=form, post=post)
+
 
 @admin.route('/delete-post/<int:post_id>', methods=['POST'])
 @login_required
@@ -374,6 +399,27 @@ def users():
                          prev_page=pagination.prev_num,
                          next_page=pagination.next_num,
                          total_pages=pagination.pages)
+
+# Add these routes
+@admin.route('/publish_post/<int:post_id>')
+@login_required
+def publish_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    post.status = 'published'
+    post.published_at = datetime.utcnow()
+    db.session.commit()
+    flash('Post published successfully!', 'success')
+    return redirect(url_for('admin.posts'))
+
+@admin.route('/unpublish_post/<int:post_id>')
+@login_required
+def unpublish_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    post.status = 'draft'
+    db.session.commit()
+    flash('Post unpublished and moved to drafts.', 'info')
+    return redirect(url_for('admin.posts'))
+
 
 
 @admin.route('/edit-user/<int:user_id>', methods=['GET', 'POST'])
@@ -676,6 +722,8 @@ writer = Blueprint('writer', __name__, url_prefix='/writer')
 def dashboard():
     # Get basic stats
     total_posts = current_user.posts.count()
+    published_posts = Post.query.filter_by(user_id=current_user.id, status='published').count()
+    draft_posts = total_posts - published_posts
     total_views = db.session.query(func.sum(Post.views)).filter(Post.user_id == current_user.id).scalar() or 0
     avg_reading_time = db.session.query(func.avg(Post.reading_time)).filter(Post.user_id == current_user.id).scalar() or 0
     avg_reading_time = float(avg_reading_time)  # Ensure it's a float
@@ -718,6 +766,8 @@ def dashboard():
         avg_reading_time=float(avg_reading_time),
         engagement_score=int(engagement_score),
         recent_posts=recent_posts,
+        published_posts=published_posts,
+        draft_posts=draft_posts,
         post_views_data=post_views_data,
         performance_data=performance_data
     )
@@ -727,9 +777,16 @@ def dashboard():
 @login_required
 def posts():
     page = request.args.get('page', 1, type=int)
+    status = request.args.get('status', '')
+
+    query = Post.query.filter_by(user_id=current_user.id)
+    
+    if status:
+        query = query.filter_by(status=status)
+
     pagination = current_user.posts.order_by(Post.created_at.desc()).paginate(
         page=page, per_page=10, error_out=False)
-    posts = pagination.items
+    posts = query.order_by(Post.created_at.desc()).paginate(page=page, per_page=10)
     total_pages = pagination.pages  # <-- Add this line
     return render_template('writer/posts.html', posts=posts, pagination=pagination, total_pages=total_pages)
 
@@ -789,7 +846,7 @@ def create_post():
 @writer.route('/edit/<int:post_id>', methods=['GET', 'POST'])
 @login_required
 def edit_post(post_id):
-    post = Post.query.get_or_404(post_id)
+    post = Post.query.filter_by(id=post_id, user_id=current_user.id).first_or_404()
     if post.author != current_user:
         abort(403)
     
