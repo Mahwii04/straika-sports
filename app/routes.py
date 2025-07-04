@@ -74,7 +74,8 @@ def page_not_found(e):
 def sitemap():
     posts = Post.query.filter_by(status='published').all()
     categories = ['football', 'tennis', 'basketball', 'esports']
-    sitemap_xml = render_template('sitemap.xml', posts=posts, categories=categories)
+    now = datetime.utcnow().date().isoformat()
+    sitemap_xml = render_template('sitemap.xml', posts=posts, categories=categories, now=now)
     return Response(sitemap_xml, mimetype='application/xml')
 
 
