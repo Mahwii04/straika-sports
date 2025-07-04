@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request, current_app, abort
+from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request, current_app, abort, Response
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, mail
 from flask_mail import Message
@@ -70,6 +70,12 @@ def page_not_found(e):
     # Render a custom 404 error page
     return render_template('404.html'), 404
 
+@main.route('/sitemap.xml')
+def sitemap():
+    posts = Post.query.filter_by(status='published').all()
+    categories = ['football', 'tennis', 'basketball', 'esports']
+    sitemap_xml = render_template('sitemap.xml', posts=posts, categories=categories)
+    return Response(sitemap_xml, mimetype='application/xml')
 
 
 
