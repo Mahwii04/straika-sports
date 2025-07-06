@@ -83,7 +83,6 @@ def sitemap():
 def about():
     return render_template('blog/about.html')
 
-
 # Auth Blueprint
 auth = Blueprint('auth', __name__)
 
@@ -1023,6 +1022,10 @@ def post(slug):
     posts = Post.query.order_by(Post.created_at.desc()).all()
     track_view(post)  # Track the view
     
+    # Convert relative to full image URL if needed
+    if post.image_url and not post.image_url.startswith('http'):
+        post.image_url = url_for('static', filename=post.image_url.strip('/static/'), _external=True)
+        
     # Get previous and next posts
     prev_post = Post.query.filter(Post.id < post.id).order_by(Post.id.desc()).first()
     next_post = Post.query.filter(Post.id > post.id).order_by(Post.id.asc()).first()

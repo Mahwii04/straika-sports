@@ -1,4 +1,20 @@
 {% extends "base.html" %}
+{% block title %}{{ post.title }} | Straika Sports{% endblock %}
+
+{% block description %}{{ post.summary or post.content[:150] }}{% endblock %}
+
+{% block meta %}
+  <meta property="og:title" content="{{ post.title }} | Straika Sports">
+  <meta property="og:description" content="{{ post.summary or post.content[:150] }}">
+  <meta property="og:image" content="{{ post.image_url }}">
+  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:type" content="article">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ post.title }} | Straika Sports">
+  <meta name="twitter:description" content="{{ post.summary or post.content[:150] }}">
+  <meta name="twitter:image" content="{{ post.image_url }}">
+{% endblock %}
 
 {% block content %}
 <article class="post-container">

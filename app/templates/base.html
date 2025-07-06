@@ -18,6 +18,24 @@
             document.documentElement.classList.toggle('dark-mode', currentTheme === 'dark');
         })();
     </script>
+    <!-- Default Description -->
+  <meta name="description" content="{% block description %}Football news, match previews and predictions from Straika Sports.{% endblock %}">
+
+  <!-- ✅ Social Meta Tags -->
+  {% block meta %}
+    <!-- Default Open Graph -->
+    <meta property="og:title" content="Straika Sports">
+    <meta property="og:description" content="Stay updated with football news, stats, and insights.">
+    <meta property="og:image" content="{{ default_image_url }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+
+    <!-- Default Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Straika Sports">
+    <meta name="twitter:description" content="Football news, previews, and analysis.">
+    <meta name="twitter:image" content="{{ default_image_url }}">
+  {% endblock %}
 </head>
 <body class="light-mode">
     {% include 'partials/_navbar.html' %}
