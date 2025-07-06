@@ -1020,13 +1020,14 @@ blog = Blueprint('blog', __name__)
 @blog.route('/post/<slug>')
 def post(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
+    posts = Post.query.order_by(Post.created_at.desc()).all()
     track_view(post)  # Track the view
     
     # Get previous and next posts
     prev_post = Post.query.filter(Post.id < post.id).order_by(Post.id.desc()).first()
     next_post = Post.query.filter(Post.id > post.id).order_by(Post.id.asc()).first()
     
-    return render_template('blog/post.html', post=post, prev_post=prev_post, next_post=next_post)
+    return render_template('blog/post.html', post=post, posts=posts, prev_post=prev_post, next_post=next_post)
 
 @blog.route('/category/<category>')
 def category(category):
