@@ -28,6 +28,7 @@ def create_app(config_name='default'):
     from app.routes import admin as admin_routes
     from app.routes import writer as writer_routes
     from app.routes import blog as blog_routes
+    from app.routes import rss as rss_routes
     from app import analytics
     
 
@@ -36,6 +37,7 @@ def create_app(config_name='default'):
     app.register_blueprint(admin_routes, url_prefix='/admin')
     app.register_blueprint(writer_routes, url_prefix='/writer')
     app.register_blueprint(blog_routes)
+    app.register_blueprint(rss_routes, url_prefix='/rss')
 
     @app.context_processor
     def inject_analytics():

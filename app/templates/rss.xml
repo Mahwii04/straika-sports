@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>Straika Sports</title>
+    <link>https://www.straikasports.buzz</link>
+    <description>Latest previews, updates, and sports analysis.</description>
+    <language>en-us</language>
+    <lastBuildDate>{{ posts[0].created_at.strftime("%a, %d %b %Y %H:%M:%S +0000") if posts else '' }}</lastBuildDate>
+
+    {% for post in posts %}
+    <item>
+      <title>{{ post.title }}</title>
+      <link>{{ url_for('blog.post', slug=post.slug, _external=True) }}</link>
+      <guid>{{ url_for('blog.post', slug=post.slug, _external=True) }}</guid>
+      <pubDate>{{ post.created_at.strftime("%a, %d %b %Y %H:%M:%S +0000") }}</pubDate>
+      <description><![CDATA[{{ post.summary or post.content[:200] }}]]></description>
+    </item>
+    {% endfor %}
+  </channel>
+</rss>

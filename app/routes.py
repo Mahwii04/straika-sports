@@ -1025,7 +1025,7 @@ def post(slug):
     # Convert relative to full image URL if needed
     if post.image_url and not post.image_url.startswith('http'):
         post.image_url = url_for('static', filename=post.image_url.strip('/static/'), _external=True)
-        
+
     # Get previous and next posts
     prev_post = Post.query.filter(Post.id < post.id).order_by(Post.id.desc()).first()
     next_post = Post.query.filter(Post.id > post.id).order_by(Post.id.asc()).first()
@@ -1049,3 +1049,11 @@ def latest():
 def predictions():
     predictions = Prediction.query.filter_by(is_active=True).filter(Prediction.date >= datetime.now(timezone.utc)).order_by(Prediction.date.asc()).all()
     return render_template('blog/predictions.html', predictions=predictions)
+
+
+rss = Blueprint('rss', __name__)
+
+@rss.route('/rss.xml')
+def rss_feed():
+    posts = Post.query.filter_by(status='published').order_by(Post.created_at.desc()).limit(20).all()
+    return Response(render_template('rss.xml', posts=posts), mimetype='application/rss+xml')
