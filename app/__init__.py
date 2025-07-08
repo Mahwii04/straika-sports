@@ -28,7 +28,6 @@ def create_app(config_name='default'):
     from app.routes import admin as admin_routes
     from app.routes import writer as writer_routes
     from app.routes import blog as blog_routes
-    from app.routes import rss as rss_routes
     from app import analytics
     
 
