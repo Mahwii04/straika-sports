@@ -78,6 +78,11 @@ def sitemap():
     sitemap_xml = render_template('sitemap.xml', posts=posts, categories=categories, now=now)
     return Response(sitemap_xml, mimetype='application/xml')
 
+@main.route('/rss.xml')
+def rss_feed():
+    posts = Post.query.filter_by(status='published').order_by(Post.created_at.desc()).limit(20).all()
+    return Response(render_template('rss.xml', posts=posts), mimetype='application/rss+xml')
+
 
 @main.route('/about')
 def about():
@@ -1049,11 +1054,3 @@ def latest():
 def predictions():
     predictions = Prediction.query.filter_by(is_active=True).filter(Prediction.date >= datetime.now(timezone.utc)).order_by(Prediction.date.asc()).all()
     return render_template('blog/predictions.html', predictions=predictions)
-
-
-rss = Blueprint('rss', __name__)
-
-@rss.route('/rss.xml')
-def rss_feed():
-    posts = Post.query.filter_by(status='published').order_by(Post.created_at.desc()).limit(20).all()
-    return Response(render_template('rss.xml', posts=posts), mimetype='application/rss+xml')
