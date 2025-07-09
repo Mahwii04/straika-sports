@@ -1024,8 +1024,8 @@ def post(slug):
     track_view(post)  # Track the view
     
     # Convert relative to full image URL if needed
-    if post.image_url and not post.image_url.startswith('http'):
-        post.image_url = url_for('static', filename=post.image_url.strip('/static/'), _external=True)
+    if post.featured_image and not post.featured_image.startswith('http'):
+        post.featured_image = url_for('static', filename=post.featured_image.strip('/static/'), _external=True)
 
     # Get previous and next posts
     prev_post = Post.query.filter(Post.id < post.id).order_by(Post.id.desc()).first()
