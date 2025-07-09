@@ -970,19 +970,15 @@ def calculate_seo_score(title, content):
     
     # Title length check (50-60 chars optimal)
     title_len = len(title)
-    if 50 <= title_len <= 60:
+    if title_len >= 60 or title_len < 100:
         score += 25
-    elif 40 <= title_len < 50 or 60 < title_len <= 70:
-        score += 15
     else:
         score += 5
     
     # Content length check (minimum 300 words)
     word_count = len(content.split())
-    if word_count >= 1000:
-        score += 25
-    elif word_count >= 600:
-        score += 20
+    if word_count >= 500:
+        score += 45
     elif word_count >= 300:
         score += 15
     else:
